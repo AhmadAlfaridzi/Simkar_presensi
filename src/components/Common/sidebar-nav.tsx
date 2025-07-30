@@ -54,9 +54,8 @@ const getIconComponent = (iconName: string, isSubItem = false) => {
   
   const baseClass = isSubItem ? "h-4 w-4" : "h-5 w-5";
 
-  // Warna untuk semua kemungkinan icon baik menu utama maupun sub-menu
+ 
   const colorMapping = {
-    // Menu Utama
     'LayoutDashboard': 'text-blue-400',
     'CalendarCheck': 'text-green-400',
     'History': isSubItem ? 'text-green-400' : 'text-purple-400', 
@@ -267,33 +266,19 @@ export const SidebarNav = ({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button
-                          variant="ghost"
-                          className={`w-full justify-start hover:bg-[#1a1a1a] hover:text-white px-3 py-2 ${
-                            activeMenu === item.name ? 'bg-[#1a1a1a] text-white' : 'text-gray-400'
-                          }`}
-                        >
-                          {getIconComponent(item.icon || '')}
-                          <span className="ml-2">{item.name}</span>
+                        <Button 
+                            variant="ghost"
+                            className="w-full justify-start hover:bg-[#1a1a1a] hover:text-white text-gray-400 px-3 py-2"
+                            onClick={logout}
+                            >
+                            <LogOut className="h-5 w-5 mr-2" />
+                            <span>Logout</span>
                         </Button>
-                      </Link>
                     </motion.div>
                   )}
                 </div>
               ))}
             </nav>
-
-            <div className="p-4 border-t border-[#333]">
-              <Button 
-                variant="ghost"
-                className="w-full justify-start hover:bg-[#1a1a1a] hover:text-white text-gray-400 px-3 py-2"
-                onClick={logout}
-              >
-                <LogOut className="h-5 w-5 mr-2" />
-                <span>Logout</span>
-              </Button>
-            </div>
           </motion.aside>
         </motion.div>
       )}

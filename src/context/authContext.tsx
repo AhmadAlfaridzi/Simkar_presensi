@@ -1,63 +1,88 @@
-'use client'
+'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { User } from '@/types/user';
 
-interface User {
-  username: string
-  role: 'TEKNISI' | 'ADMIN'
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
+  isLoading: boolean;
 }
 
-interface AuthContextProps {
-  user: User | null
-  login: (username: string, password: string) => Promise<void>
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthContextProps>({
+const AuthContext = createContext<AuthContextType>({
   user: null,
+  isAuthenticated: false,
   login: async () => {},
-  logout: () => {}
-})
+  logout: () => {},
+  isLoading: true,
+});
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const router = useRouter()
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+    const loadUser = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        }
+      } catch (error) {
+        console.error('Failed to parse user data', error);
+        localStorage.removeItem('user');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUser();
+  }, []);
 
   const login = async (username: string, password: string) => {
-    if (!username || !password) throw new Error('Username dan password diperlukan')
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.trim(), password }),
+      });
 
-    if (username === 'admin' && password === 'admin123') {
-      const userData: User = { username, role: 'ADMIN' }
-      localStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
-    } else if (username === 'teknisi' && password === 'teknisi123') {
-      const userData: User = { username, role: 'TEKNISI' }
-      localStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
-    } else {
-      throw new Error('Username atau password salah')
+      if (!response.ok) throw new Error('Login failed');
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setUser(result.data);
+        localStorage.setItem('user', JSON.stringify(result.data));
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const logout = () => {
-    localStorage.removeItem('user')
-    setUser(null)
-    router.push('/login')
-  }
+    localStorage.removeItem('user');
+    setUser(null);
+    router.push('/login');
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export const useAuth = () => useContext(AuthContext)
+export function useAuth() {
+  return useContext(AuthContext);
+}
