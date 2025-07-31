@@ -1,15 +1,106 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Model User (Sesuai UserProfile & UserAccount)
+model User {
+  id                  String              @id @default(uuid())
+  name                String
+  username            String              @unique
+  email               String              @unique
+  phone               String?
+  address             String?
+  birthDate           String?
+  joinDate            String
+  role                Role    @default(KARYAWAN)             
+  position            String
+  department          String
+  image               String?
+  status              UserStatus              
+  lastLogin           DateTime?
+  passwordHash        String              
+  resetPasswordToken  String?
+  resetPasswordExpires DateTime?
+  attendances         Attendance[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  barcodes            Barcode[]
+  @@map("users")
+}
+
+// Model Absensi (Sesuai AttendanceRecord)
+model Attendance {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  date        String   // Format: "YYYY-MM-DD"
+  clockIn     String   // Format: "HH:MM"
+  clockOut    String?  // Bisa null jika belum clockOut
+  status      AttendanceStatus
+  photoIn     String?
+  photoOut    String?
+  createdAt   DateTime @default(now())
+}
+
+// Model Alat Kalibrasi
+model AlatKalibrasi {
+  id                  String   @id @default(uuid())
+  nama_alat           String
+  merek_model         String
+  nomor_seri          String   @unique
+  rentang_pengukuran  String
+  kelas_akurasi       String
+  tanggal_kalibrasi   String
+  tanggal_kadaluarsa  String
+  id_lokasi           String
+  status              String   // "Aktif", "Tidak Aktif", dll.
+  foto                String?
+  createdAt           DateTime @default(now())
+}
+
+// Model SparePart
+model SparePart {
+  id          String   @id @default(uuid())
+  nama        String
+  kode        String   @unique
+  jumlah      Int
+  lokasi      String
+  supplier    String?
+  foto        String?
+  status      String   // "Tersedia", "Habis", "Dipesan"
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  OWNER 
+  DIREKTUR
+  MANAJER
+  KARYAWAN
+  TEKNISI
+}
+
+enum UserStatus {
+  AKTIF
+  NONAKTIF
+  DITANGGUHKAN
+}
+
+enum AttendanceStatus {
+  TEPAT_WAKTU
+  TERLAMBAT
+  PULANG_CEPAT
+}
+
+model Barcode {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  code      String    @unique
+  createdAt DateTime  @default(now())
 }

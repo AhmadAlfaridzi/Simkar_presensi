@@ -6,13 +6,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { GenericTable } from '@/components/Common/genericTable'
 import { ColumnDef } from '@tanstack/react-table'
 import { dummyAttendance } from '@/data/attendence'
-import { format, isToday } from 'date-fns'
+import { isToday } from 'date-fns'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { AttendanceRecord } from '@/types/attendance'
 import { Users, CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { AttendanceDetailModal } from '@/components/Common/attendanceDetailModal'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { PageHeader } from '@/components/Common/pageHeader'
+import { usePageMetadata } from '@/context/pageMetadataContext'
 
 const calculateStats = (attendanceData: AttendanceRecord[]) => {
   const today = new Date().toISOString().split('T')[0]
@@ -44,8 +46,23 @@ const attendanceData = [
 
 export default function Page() {
   const { user } = useAuth()
+  const { setMetadata } = usePageMetadata()
   const dashboardStats = calculateStats(dummyAttendance)
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null)
+
+  useEffect(() => {
+    setMetadata({
+      title: 'Dashboard',
+      breadcrumbs: [
+        { label: 'Home', href: '/dashboard' },
+        { label: 'Dashboard' }
+      ]
+    })
+  }, [setMetadata])
+
+  if (!user) redirect('/login')
+
+  const todayAttendance = dummyAttendance.filter(record => isToday(new Date(record.date)))
 
   const todayAttendanceColumns: ColumnDef<AttendanceRecord>[] = [
     {
@@ -91,13 +108,11 @@ export default function Page() {
       )
     }
   ]
-
-  const todayAttendance = dummyAttendance.filter(record => isToday(new Date(record.date)))
-
-  if (!user) redirect('/login')
-
   return (
     <div className="space-y-6">
+      <PageHeader />
+
+      {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatBox title="Total Karyawan" value={dashboardStats.totalKaryawan} color="blue" Icon={Users} />
         <StatBox title="Tepat Waktu" value={dashboardStats.tepatWaktu} color="green" Icon={CheckCircle2} />
@@ -105,6 +120,7 @@ export default function Page() {
         <StatBox title="Tidak Hadir" value={dashboardStats.tidakHadir} color="red" Icon={XCircle} />
       </div>
 
+      {/* Bar chart */}
       <div className="bg-[#1a1a1a] p-4 rounded-lg shadow">
         <h2 className="text-xl font-bold mb-4">Grafik Kehadiran Karyawan</h2>
         <div className="h-80">
@@ -123,6 +139,7 @@ export default function Page() {
         </div>
       </div>
 
+      {/* Absensi Hari Ini */}
       <div className="bg-[#1a1a1a] p-4 rounded-lg shadow">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Absensi Hari Ini</h2>
@@ -140,7 +157,7 @@ export default function Page() {
           showPagination={todayAttendance.length > 5}
           pageSize={5}
         />
-        <AttendanceDetailModal 
+        <AttendanceDetailModal
           record={selectedRecord}
           onOpenChange={(open) => !open && setSelectedRecord(null)}
         />
@@ -149,7 +166,7 @@ export default function Page() {
   )
 }
 
-function StatBox({ title, value, color, Icon }: { title: string; value: number; color: 'blue' | 'green' | 'yellow' | 'red'; Icon: any }) {
+function StatBox({ title, value, subtitle, color, Icon }: { title: string; value: number; subtitle?: string; color: 'blue' | 'green' | 'yellow' | 'red'; Icon: any }) {
   const colors: Record<'blue' | 'green' | 'yellow' | 'red', string> = {
     blue: 'text-blue-400 bg-blue-500/20 border-blue-500',
     green: 'text-green-400 bg-green-500/20 border-green-500',
@@ -158,14 +175,15 @@ function StatBox({ title, value, color, Icon }: { title: string; value: number; 
   }
 
   return (
-    <div className={`bg-[#1a1a1a] p-4 rounded-lg border-l-4 shadow ${colors[color]}`}>
+    <div className={`bg-[#1a1a1a] p-4 rounded-lg border-l-4 shadow ${colors[color]} hover:shadow-md hover:shadow-${color}-500/30 transition-shadow duration-300`}>
       <div className="flex justify-between items-center">
         <div>
           <p className="text-gray-400 text-sm">{title}</p>
           <h2 className="text-2xl font-bold mt-1">{value}</h2>
+          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
-        <div className={`${colors[color].split(' ')[0]} p-3 rounded-full`}>
-          <Icon className={`w-5 h-5 ${colors[color].split(' ')[0]}`} />
+        <div className={`p-3 rounded-full bg-gradient-to-br from-${color}-500/20 to-${color}-600/20`}>
+          <Icon className={`w-5 h-5 text-${color}-400`} />
         </div>
       </div>
     </div>

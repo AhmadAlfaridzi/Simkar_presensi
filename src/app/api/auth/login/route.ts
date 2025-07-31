@@ -1,35 +1,59 @@
-// src/app/api/auth/login/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function POST(request: Request) {
-  const { username, password } = await request.json();
+  const { username, password } = await request.json()
 
-  // Simulasi user data — GANTI DENGAN CEK DATABASE MU
-  const dummyUser = {
-    id: '1',
-    name: 'Admin',
-    username: 'admin',
-    email: 'admin@example.com',
-    role: 'ADMIN',
-    position: 'Administrator',
-    department: 'IT',
-    image: null,
-  };
-
-  const dummyPassword = 'admin123';
-
-  if (username === dummyUser.username && password === dummyPassword) {
-    return NextResponse.json({
-      success: true,
-      data: dummyUser,
-    });
-  } else {
+  if (!username || !password) {
     return NextResponse.json(
-      {
-        success: false,
-        message: 'Username atau password salah',
-      },
-      { status: 401 }
-    );
+      { error: 'Username dan password harus diisi' },
+      { status: 400 }
+    )
   }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      username: username.trim()
+    }
+  })
+
+  if (!user) {
+    await bcrypt.compare(password, '$2a$10$fakehashforprotection')
+    return NextResponse.json(
+      { error: 'Username atau password salah' },
+      { status: 401 }
+    )
+  }
+
+  // Verifikasi password
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
+  if (!isPasswordValid) {
+    return NextResponse.json(
+      { error: 'Username atau password salah' },
+      { status: 401 }
+    )
+  }
+
+  // Cek status aktif
+  if (user.status !== 'AKTIF') {
+    return NextResponse.json(
+      { error: 'Akun tidak aktif. Hubungi admin.' },
+      { status: 403 }
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      position: user.position,
+      department: user.department,
+      image: user.image,
+    }
+  })
 }
