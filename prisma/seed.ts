@@ -1,7 +1,7 @@
 import { Role, UserStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { dummyPegawai } from '../src/data/users'
-import prisma from '../src/lib/prisma'
+import {prisma } from '../src/lib/prisma'
 
 const SALT_ROUNDS = 10
 

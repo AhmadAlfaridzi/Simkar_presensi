@@ -9,7 +9,7 @@ interface NavbarProps {
   user: User
 }
 
-export function Navbar({ isMobile, toggleMobileMenu, pageTitle, user }: NavbarProps) {
+export function Navbar({ isMobile, toggleMobileMenu, pageTitle }: NavbarProps) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-[#0d0d0d]">
       <div className="flex items-center gap-4">
