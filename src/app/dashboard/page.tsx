@@ -166,7 +166,7 @@ export default function Page() {
   )
 }
 
-function StatBox({ title, value, subtitle, color, Icon }: { title: string; value: number; subtitle?: string; color: 'blue' | 'green' | 'yellow' | 'red'; Icon: any }) {
+function StatBox({ title, value, subtitle, color, Icon }: { title: string; value: number; subtitle?: string; color: 'blue' | 'green' | 'yellow' | 'red'; Icon: React.ElementType }) {
   const colors: Record<'blue' | 'green' | 'yellow' | 'red', string> = {
     blue: 'text-blue-400 bg-blue-500/20 border-blue-500',
     green: 'text-green-400 bg-green-500/20 border-green-500',
