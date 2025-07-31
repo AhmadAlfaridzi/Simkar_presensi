@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { dummyPegawai } from '../src/data/users'
 import bcrypt from 'bcryptjs'
 import { createClient } from '@supabase/supabase-js'
