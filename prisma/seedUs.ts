@@ -1,4 +1,6 @@
-import 'dotenv/config'
+import { config } from 'dotenv'
+config({ path: '.env.local' })
+
 import { dummyPegawai } from '../src/data/users'
 import bcrypt from 'bcryptjs'
 import { createClient } from '@supabase/supabase-js'
@@ -39,8 +41,8 @@ function toUserStatus(status?: string): string {
 async function main() {
   console.log('🌱 Start seeding to Supabase...')
 
-  // Optional: Bersihkan semua user (jika memang di-reset total)
-  const { error: deleteError } = await supabase.from('users').delete().neq('id', '')
+  // ✅ Perbaikan di sini
+  const { error: deleteError } = await supabase.from('users').delete().neq('id', '00000000-0000-0000-0000-000000000000')
   if (deleteError) {
     console.error('❌ Failed to clear users table:', deleteError.message)
     process.exit(1)
@@ -50,7 +52,7 @@ async function main() {
     const hashedPassword = await bcrypt.hash(`${user.username}123`, SALT_ROUNDS)
 
     const { error } = await supabase.from('users').insert({
-      id: user.id,
+      customid: user.id,
       name: user.name,
       username: user.username,
       email: user.email,
