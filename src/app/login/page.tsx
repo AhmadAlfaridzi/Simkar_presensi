@@ -75,7 +75,7 @@ export default function LoginPage() {
       {/* Background login */}
       <div className="fixed inset-0 -z-10">
         <Image
-          src="/images/bg-login.jpg"
+          src="/images/Bg-login.jpg"
           alt="Login Background"
           fill
           quality={80}
