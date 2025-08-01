@@ -12,24 +12,7 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findUnique({
       where: { username: username.trim() },
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        passwordHash: true,
-        status: true,
-        name: true,
-        email: true,
-        position: true,
-        department: true,
-        image: true,
-      },
     })
-
-      console.log('📦 USER DATA:', user)
-    if (user) {
-      console.log('📌 passwordHash:', user.passwordHash)
-    }
 
     if (!user) {
       await bcrypt.compare(password, '$2a$10$fakehashforprotection')
