@@ -3,84 +3,89 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") 
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Model User (Sesuai UserProfile & UserAccount)
 model User {
-  id                  String              @id @default(uuid()) @db.Uuid
-  customId            String?             @unique
-  name                String
-  username            String              @unique
-  email               String              @unique
-  phone               String?
-  address             String?
-  birthDate           String?
-  joinDate            String
-  role                Role    @default(KARYAWAN)             
-  position            String
-  department          String
-  image               String?
-  status              UserStatus              
-  lastLogin           DateTime?
-  passwordHash        String              
-  resetPasswordToken  String?
+  customId             String?      @unique
+  name                 String
+  username             String       @unique
+  email                String       @unique
+  phone                String?
+  address              String?
+  birthDate            String?
+  joinDate             String
+  role                 Role         @default(KARYAWAN)
+  position             String
+  department           String
+  image                String?
+  status               UserStatus
+  lastLogin            DateTime?
+  passwordHash         String
+  resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  attendances         Attendance[]
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  barcodes            Barcode[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attendances          Attendance[]
+  barcodes             Barcode[]
+
   @@map("users")
 }
 
-// Model Absensi (Sesuai AttendanceRecord)
 model Attendance {
-  id          String   @id @default(uuid()) @db.Uuid
-  user        User     @relation(fields: [userId], references: [customId])
-  userId      String
-  date        String   // Format: "YYYY-MM-DD"
-  clockIn     String   // Format: "HH:MM"
-  clockOut    String?  // Bisa null jika belum clockOut
-  status      AttendanceStatus
-  photoIn     String?
-  photoOut    String?
-  createdAt   DateTime @default(now())
+  userId    String
+  date      String
+  clockIn   String
+  clockOut  String?
+  status    AttendanceStatus
+  photoIn   String?
+  photoOut  String?
+  createdAt DateTime         @default(now())
+  id        String           @id @default(uuid()) @db.Uuid
+  user      User             @relation(fields: [userId], references: [customId])
 }
 
-// Model Alat Kalibrasi
 model AlatKalibrasi {
-  id                  String   @id @default(uuid()) @db.Uuid
-  nama_alat           String
-  merek_model         String
-  nomor_seri          String   @unique
-  rentang_pengukuran  String
-  kelas_akurasi       String
-  tanggal_kalibrasi   String
-  tanggal_kadaluarsa  String
-  id_lokasi           String
-  status              String   // "Aktif", "Tidak Aktif", dll.
-  foto                String?
-  createdAt           DateTime @default(now())
+  nama_alat          String
+  merek_model        String
+  nomor_seri         String   @unique
+  rentang_pengukuran String
+  kelas_akurasi      String
+  tanggal_kalibrasi  String
+  tanggal_kadaluarsa String
+  id_lokasi          String
+  status             String
+  foto               String?
+  createdAt          DateTime @default(now())
+  id                 String   @id @default(uuid()) @db.Uuid
 }
 
-// Model SparePart
 model SparePart {
-  id          String   @id @default(uuid()) @db.Uuid
-  nama        String
-  kode        String   @unique
-  jumlah      Int
-  lokasi      String
-  supplier    String?
-  foto        String?
-  status      String   // "Tersedia", "Habis", "Dipesan"
-  createdAt   DateTime @default(now())
+  nama      String
+  kode      String   @unique
+  jumlah    Int
+  lokasi    String
+  supplier  String?
+  foto      String?
+  status    String
+  createdAt DateTime @default(now())
+  id        String   @id @default(uuid()) @db.Uuid
+}
+
+model Barcode {
+  userId    String
+  code      String   @unique
+  createdAt DateTime @default(now())
+  id        String   @id @default(uuid()) @db.Uuid
+  user      User     @relation(fields: [userId], references: [customId])
 }
 
 enum Role {
   ADMIN
-  OWNER 
+  OWNER
   DIREKTUR
   MANAJER
   KARYAWAN
@@ -97,12 +102,4 @@ enum AttendanceStatus {
   TEPAT_WAKTU
   TERLAMBAT
   PULANG_CEPAT
-}
-
-model Barcode {
-  id        String    @id @default(uuid()) @db.Uuid
-  userId    String
-  user      User      @relation(fields: [userId], references: [customId])
-  code      String    @unique
-  createdAt DateTime  @default(now())
 }
