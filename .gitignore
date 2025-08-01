@@ -42,7 +42,20 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+-d
+-H
 
+prisma/dev.db
+prisma/dev.sqlite
+prisma/migrations/
+
+.DS_Store
+*.log
+*-lock.yaml
+*.tsbuildinfo
+
+Supabase CLI 
+.supabase/
 *.tsbuildinfo
 
 # Log files
@@ -64,3 +77,4 @@ coverage/
 *.sql
 *.sqlite
 *.dump
+
