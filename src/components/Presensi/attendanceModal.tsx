@@ -13,7 +13,7 @@ interface AttendanceModalProps {
   type: 'masuk' | 'pulang'
   userName: string
   attendanceTime: string
-  onPhotoTaken(photoData, locationText)
+  onPhotoTaken: (photoData: string, locationText: string | null) => void
   onSubmit: () => void
   
   // onScanSuccess: (decodedText: string) => void
@@ -21,18 +21,19 @@ interface AttendanceModalProps {
 
 const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
   try {
+    const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY
+    if (!apiKey) throw new Error('API key OpenCage tidak ditemukan.')
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${apiKey}&language=id&pretty=1`
     )
     const data = await response.json()
-    return (
-      data?.address?.city ||
-      data?.address?.town ||
-      data?.address?.village ||
-      data?.address?.county ||
-      data?.address?.state ||
-      null
-    )
+    let formatted = data?.results?.[0]?.formatted || null
+
+    if (formatted?.toLowerCase().startsWith('unnamed road,')) {
+      formatted = formatted.replace(/^Unnamed road,\s*/i, '')
+    }
+
+    return formatted
   } catch (error) {
     console.error('Reverse geocoding failed:', error)
     return null
@@ -107,24 +108,47 @@ export default function AttendanceModal({
   }
 
   const requestLocation = () => {
-    if (!navigator.geolocation) {
-      console.error('Geolocation not supported.')
-      return
-    }
+  if (!navigator.geolocation) {
+    console.error('Geolocation tidak didukung.')
+    return
+  }
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords
-        setLocation({ lat: latitude, lng: longitude })
+  navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
+    console.log('Status izin lokasi:', result.state) 
+  })
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude, accuracy } = position.coords
+      const timestamp = new Date(position.timestamp).toLocaleTimeString()
+
+      console.log(`Lokasi didapat: lat=${latitude}, lon=${longitude}, akurasi=${accuracy}m @ ${timestamp}`)
+
+       if (accuracy > 100) {
+          alert('📍 Lokasi tidak akurat (lebih dari 100 meter). Coba ulangi atau nyalakan GPS.')
+        return
+      }
+
+      setLocation({ lat: latitude, lng: longitude })
+
+      try {
         const name = await reverseGeocode(latitude, longitude)
         setLocationName(name)
-      },
-      (error) => {
-        console.error('Gagal mendapatkan lokasi:', error.message)
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
-  }
+        console.log('Nama lokasi:', name)
+      } catch (err) {
+        console.error('Gagal reverse geocoding:', err)
+      }
+    },
+    (error) => {
+      console.error('Gagal mendapatkan lokasi:', error.message)
+      alert('Izin lokasi diperlukan untuk absen.')
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0 
+    }
+  )
+}
 
 
   const startCamera = async () => {
@@ -180,9 +204,7 @@ export default function AttendanceModal({
           ctx.fillStyle = 'white'
           ctx.font = '18px sans-serif'
           ctx.fillText(`Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`, 10, canvas.height - 30)
-          if (locationText) {
-            ctx.fillText(`${locationText}`, 10, canvas.height - 10)
-          }
+          ctx.fillText(`${locationText || 'Lokasi tidak ditemukan'}`, 10, canvas.height - 10)
 
           const photoData = canvas.toDataURL('image/jpeg')
           setPhoto(photoData)
@@ -284,10 +306,11 @@ export default function AttendanceModal({
       cleanupCamera()
       return
     }
-
+    
     requestLocation()
+    
     if (mode === 'selfie') {
-      startCamera()
+      startCamera() 
     }
       // else if (mode === 'qr') {
       //     await startScanner()
