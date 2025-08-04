@@ -27,9 +27,9 @@ export const menuItems: MenuItem[] = [
     href: '/dashboard/presensi',
     items: [
       { 
-        name: 'Absen', 
+        name: 'Catat kehadiran', 
         icon: 'LogIn',
-        href: '/dashboard/presensi/absen', 
+        href: '/dashboard/presensi/kehadiran', 
         allowedRoles: ['DIREKTUR', 'MANAJER', 'KARYAWAN', 'TEKNISI','ADMIN']
       },
       { 
