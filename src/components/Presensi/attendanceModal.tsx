@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Camera, RotateCw,User } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
+
 //import {  QrCode } from 'lucide-react'
 interface AttendanceModalProps {
   isOpen: boolean
@@ -115,113 +116,102 @@ export default function AttendanceModal({
     return
   }
 
-  navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
-    console.log('Status izin lokasi:', result.state) 
-  })
-  navigator.geolocation.getCurrentPosition(
+  const watcher = navigator.geolocation.watchPosition(
     async (position) => {
       const { latitude, longitude, accuracy } = position.coords
-      const timestamp = new Date(position.timestamp).toLocaleTimeString()
+      console.log(`Lokasi update: lat=${latitude}, lon=${longitude}, akurasi=${accuracy}m`)
 
-      console.log(`Lokasi didapat: lat=${latitude}, lon=${longitude}, akurasi=${accuracy}m @ ${timestamp}`)
 
-       if (accuracy > 100) {
-          alert('📍 Lokasi tidak akurat (lebih dari 100 meter). Coba ulangi atau nyalakan GPS.')
-        return
-      }
-
+      // hanya jika akurat, baru simpan
       setLocation({ lat: latitude, lng: longitude })
 
       try {
         const name = await reverseGeocode(latitude, longitude)
         setLocationName(name)
-        console.log('Nama lokasi:', name)
+        console.log('📍 Lokasi final:', name)
+
+        // Stop watching setelah dapat lokasi bagus
+        navigator.geolocation.clearWatch(watcher)
       } catch (err) {
-        console.error('Gagal reverse geocoding:', err)
+        console.error('❌ Gagal reverse geocoding:', err)
       }
     },
     (error) => {
-      console.error('Gagal mendapatkan lokasi:', error.message)
+      console.error('❌ Gagal mendapatkan lokasi:', error.message)
       alert('Izin lokasi diperlukan untuk absen.')
     },
     {
       enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0 
+      timeout: 15000,
+      maximumAge: 0
     }
   )
 }
 
-
-  const startCamera = async () => {
-    try {
-      await cleanupAll()
-      const facingMode = (mode === 'qr' && isMobile) ? 'environment' : cameraFacingMode
-      const constraints = {
-        video: {
-          ...(isMobile && { facingMode }),
-          width: { ideal: isMobile ? 1280 : 640 },
-          height: { ideal: isMobile ? 720 : 480 }
-        }
+  const startCamera = useCallback(async () => {
+  try {
+    await cleanupAll()
+    const facingMode = (mode === 'qr' && isMobile) ? 'environment' : cameraFacingMode
+    const constraints = {
+      video: {
+        ...(isMobile && { facingMode }),
+        width: { ideal: isMobile ? 1280 : 640 },
+        height: { ideal: isMobile ? 720 : 480 }
       }
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.style.transform =
-          facingMode === 'user' && mode === 'selfie' && isMobile
-            ? 'scaleX(-1)'
-            : 'scaleX(1)'
-        videoRef.current.style.objectFit = 'cover'
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err)
     }
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream
+      videoRef.current.style.transform =
+        facingMode === 'user' && mode === 'selfie' && isMobile
+          ? 'scaleX(-1)'
+          : 'scaleX(1)'
+      videoRef.current.style.objectFit = 'cover'
+    }
+  } catch (err) {
+    console.error('Error accessing camera:', err)
   }
+}, [cameraFacingMode, isMobile, mode])
 
 
   
   const takePhoto = () => {
-    const video = videoRef.current
-    if (!video) return
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords
-        const locationText = await reverseGeocode(latitude, longitude)
-
-        const canvas = document.createElement('canvas')
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        const ctx = canvas.getContext('2d')
-
-        if (ctx) {
-          if (cameraFacingMode === 'user' && mode === 'selfie' && isMobile) {
-            ctx.translate(canvas.width, 0)
-            ctx.scale(-1, 1)
-          }
-
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-          ctx.fillStyle = 'white'
-          ctx.font = '18px sans-serif'
-          ctx.fillText(`Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`, 10, canvas.height - 30)
-          ctx.fillText(`${locationText || 'Lokasi tidak ditemukan'}`, 10, canvas.height - 10)
-
-          const photoData = canvas.toDataURL('image/jpeg')
-          setPhoto(photoData)
-          onPhotoTaken(photoData, locationText)
-          if (video.srcObject) {
-            (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
-          }
-        }
-      },
-      (error) => {
-        console.error('Gagal mengambil lokasi:', error)
-        alert('Izin lokasi diperlukan.')
-      }
-    )
+  const video = videoRef.current
+  if (!video || !location) {
+    alert('Lokasi belum tersedia. Harap aktifkan GPS atau tunggu beberapa detik.')
+    return
   }
+
+  const { lat, lng } = location
+
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  const ctx = canvas.getContext('2d')
+
+  if (ctx) {
+    if (cameraFacingMode === 'user' && mode === 'selfie' && isMobile) {
+      ctx.translate(canvas.width, 0)
+      ctx.scale(-1, 1)
+    }
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = 'white'
+    ctx.font = '18px sans-serif'
+    ctx.fillText(`Lat: ${lat.toFixed(5)}, Lon: ${lng.toFixed(5)}`, 10, canvas.height - 30)
+    ctx.fillText(`${locationName || 'Lokasi tidak ditemukan'}`, 10, canvas.height - 10)
+
+    const photoData = canvas.toDataURL('image/jpeg')
+    setPhoto(photoData)
+    onPhotoTaken(photoData, locationName)
+
+    if (video.srcObject) {
+      (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
+    }
+  }
+}
 
 
   const switchCamera = () => {
@@ -304,22 +294,30 @@ export default function AttendanceModal({
     setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
   }, [])
 
-  useEffect(() => {
-    if (!isOpen) {
-      setPhoto(null)
-      cleanupCamera()
-      return
-    }
-    
+useEffect(() => {
+  if (!isOpen) {
+    setPhoto(null)
+    cleanupCamera()
+    return
+  }
+
+  if (mode === 'selfie') {
+    startCamera()
     requestLocation()
-    
-    if (mode === 'selfie') {
-      startCamera() 
-    }
+  }
       // else if (mode === 'qr') {
       //     await startScanner()
       //   }
-      }, [isOpen, mode, startCamera])
+  }, [isOpen, mode])
+
+  useEffect(() => {
+  if (isOpen) {
+    navigator.permissions.query({ name: 'geolocation' as PermissionName }).then(result => {
+      console.log('Status izin lokasi:', result.state)
+      requestLocation()
+    })
+  }
+}, [isOpen])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
