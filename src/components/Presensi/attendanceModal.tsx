@@ -13,8 +13,9 @@ interface AttendanceModalProps {
   type: 'masuk' | 'pulang'
   userName: string
   attendanceTime: string
-  onPhotoTaken: (photo: string) => void
+  onPhotoTaken(photoData, locationText)
   onSubmit: () => void
+  
   // onScanSuccess: (decodedText: string) => void
 }
 
@@ -185,7 +186,7 @@ export default function AttendanceModal({
 
           const photoData = canvas.toDataURL('image/jpeg')
           setPhoto(photoData)
-          onPhotoTaken(photoData)
+          onPhotoTaken(photoData, locationText)
           video.srcObject && (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
         }
       },
