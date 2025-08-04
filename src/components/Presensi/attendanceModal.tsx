@@ -1,4 +1,5 @@
 'use client'
+
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -17,6 +18,27 @@ interface AttendanceModalProps {
   onScanSuccess: (decodedText: string) => void
 }
 
+const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    )
+    const data = await response.json()
+    return (
+      data?.address?.city ||
+      data?.address?.town ||
+      data?.address?.village ||
+      data?.address?.county ||
+      data?.address?.state ||
+      null
+    )
+  } catch (error) {
+    console.error('Reverse geocoding failed:', error)
+    return null
+  }
+}
+
+
 export default function AttendanceModal({
   isOpen,
   onOpenChange,
@@ -34,9 +56,18 @@ export default function AttendanceModal({
   const [photo, setPhoto] = useState<string | null>(null)
   const [mode, setMode] = useState<'selfie' | 'qr'>('selfie')
   const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment')
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const [isMobile, setIsMobile] = useState(false)
+  const [isChangingMode, setIsChangingMode] = useState(false)
+  
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationName, setLocationName] = useState<string | null>(null)
+  
+  useEffect(() => {
+    setIsMobile(
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    )
+  }, [])
 
-  // fungsi untuk kamera
   const cleanupCamera = async () => {
     if (videoRef.current?.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream
@@ -48,16 +79,21 @@ export default function AttendanceModal({
   const cleanupScanner = async () => {
     if (qrScannerRef.current) {
       try {
-         await qrScannerRef.current.stop().catch(err => {
-      // Abaikan error jika scanner sudah berhenti
-      if (!err.message.includes('already stopped') && 
-          !err.message.includes('not running')) {
-        console.error("Error stopping scanner:", err);
-      }
-      });
-        qrScannerRef.current = null
-      } catch (err) {
-        console.error("Error stopping scanner:", err)
+        await qrScannerRef.current.stop()
+          const container = qrContainerRef.current
+          if (container && container.hasChildNodes()) {
+            await qrScannerRef.current.clear()
+          }
+      } catch (err: any) {
+        if (
+          !err.message?.includes('already stopped') &&
+          !err.message?.includes('not running') &&
+          !err.message?.includes('The node to be removed is not a child')
+        ) {
+          console.error('Error stopping scanner:', err)
+        }
+      } finally {
+          qrScannerRef.current = null
       }
     }
   }
@@ -67,64 +103,105 @@ export default function AttendanceModal({
       await cleanupCamera()
       await cleanupScanner()
     } catch (err) {
-      console.error("Error during cleanup:", err)
+      console.error('Error during cleanup:', err)
     }
   }
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      console.error('Geolocation not supported.')
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+        setLocation({ lat: latitude, lng: longitude })
+        const name = await reverseGeocode(latitude, longitude)
+        setLocationName(name)
+      },
+      (error) => {
+        console.error('Gagal mendapatkan lokasi:', error.message)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
 
   const startCamera = async () => {
     try {
       await cleanupAll()
-      
-      const facingMode = (mode === 'qr' && isMobile) 
-        ? 'environment' 
-        : cameraFacingMode
-      
+      const facingMode = (mode === 'qr' && isMobile) ? 'environment' : cameraFacingMode
       const constraints = {
         video: {
-          ...(isMobile && { facingMode }), 
+          ...(isMobile && { facingMode }),
           width: { ideal: isMobile ? 1280 : 640 },
           height: { ideal: isMobile ? 720 : 480 }
         }
       }
-      
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        videoRef.current.style.transform = (facingMode === 'user' && mode === 'selfie' && isMobile) 
-          ? 'scaleX(-1)' 
-          : 'scaleX(1)'
+        videoRef.current.style.transform =
+          facingMode === 'user' && mode === 'selfie' && isMobile
+            ? 'scaleX(-1)'
+            : 'scaleX(1)'
         videoRef.current.style.objectFit = 'cover'
       }
     } catch (err) {
-      console.error("Error accessing camera:", err)
+      console.error('Error accessing camera:', err)
     }
   }
 
+
+  
   const takePhoto = () => {
-    if (!videoRef.current) return
-    
-    const canvas = document.createElement('canvas')
-    canvas.width = videoRef.current.videoWidth
-    canvas.height = videoRef.current.videoHeight
-    const ctx = canvas.getContext('2d')
-    
-    if (ctx) {
-      if (cameraFacingMode === 'user' && mode === 'selfie' && isMobile) {
-        ctx.translate(canvas.width, 0)
-        ctx.scale(-1, 1)
+    const video = videoRef.current
+    if (!video) return
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+        const locationText = await reverseGeocode(latitude, longitude)
+
+        const canvas = document.createElement('canvas')
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        const ctx = canvas.getContext('2d')
+
+        if (ctx) {
+          if (cameraFacingMode === 'user' && mode === 'selfie' && isMobile) {
+            ctx.translate(canvas.width, 0)
+            ctx.scale(-1, 1)
+          }
+
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+          ctx.fillStyle = 'white'
+          ctx.font = '18px sans-serif'
+          ctx.fillText(`Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`, 10, canvas.height - 30)
+          if (locationText) {
+            ctx.fillText(`${locationText}`, 10, canvas.height - 10)
+          }
+
+          const photoData = canvas.toDataURL('image/jpeg')
+          setPhoto(photoData)
+          onPhotoTaken(photoData)
+          video.srcObject && (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
+        }
+      },
+      (error) => {
+        console.error('Gagal mengambil lokasi:', error)
+        alert('Izin lokasi diperlukan.')
       }
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height)
-      const photoData = canvas.toDataURL('image/jpeg')
-      setPhoto(photoData)
-      onPhotoTaken(photoData)
-      cleanupCamera()
-    }
+    )
   }
+
 
   const switchCamera = () => {
     if (isMobile && mode === 'selfie') {
-      setCameraFacingMode(prev => prev === 'user' ? 'environment' : 'user')
+      setCameraFacingMode(prev => (prev === 'user' ? 'environment' : 'user'))
     }
   }
 
@@ -134,87 +211,96 @@ export default function AttendanceModal({
   }
 
   const handleClose = async () => {
-  try {
-    await cleanupAll();
-  } catch (err) {
-    console.error("Error during cleanup:", err);
-  } finally {
-    onOpenChange(false);
-  }
-};
-
-  const startScanner = async () => {
     try {
       await cleanupAll()
-      if (!qrContainerRef.current) return
-
-      const container = qrContainerRef.current
-      container.innerHTML = ''
-      
-      const scanner = new Html5Qrcode(container.id)
-      await scanner.start(
-        { 
-          facingMode: isMobile ? "environment" : "user" 
-        }, 
-        { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 4/3
-        },
-        (decodedText) => { 
-          onScanSuccess(decodedText) 
-        },
-        (errorMessage) => {
-          if (!errorMessage.includes('NotFoundException')) {
-            console.log("Scan error:", errorMessage)
-          }
-        }
-      )
-      qrScannerRef.current = scanner
     } catch (err) {
-      console.error("Scanner init error:", err)
-      await cleanupScanner()
-      setMode('selfie')
+      console.error('Error during cleanup:', err)
+    } finally {
+      onOpenChange(false)
     }
   }
+
+  // const startScanner = async () => {
+  //   try {
+  //     await cleanupAll()
+  //     if (!qrContainerRef.current) return
+
+  //     const container = qrContainerRef.current
+  //     const scanner = new Html5Qrcode(container.id)
+  //     await scanner.start(
+  //       {
+  //         facingMode: isMobile ? 'environment' : 'user'
+  //       },
+  //       {
+  //         fps: 10,
+  //         qrbox: { width: 250, height: 250 },
+  //         aspectRatio: 4 / 3
+  //       },
+  //       decodedText => {
+  //         onScanSuccess(decodedText)
+  //       },
+  //       errorMessage => {
+  //         if (!errorMessage.includes('NotFoundException')) {
+  //           console.log('Scan error:', errorMessage)
+  //         }
+  //       }
+  //     )
+  //     qrScannerRef.current = scanner
+  //   } catch (err) {
+  //     console.error('Scanner init error:', err)
+  //     await cleanupScanner()
+  //     setMode('selfie')
+  //   }
+  // }
+
+  const handleModeChange = async (newMode: 'selfie' | 'qr') => {
+    if (mode === newMode || isChangingMode) return
+
+    setIsChangingMode(true)
+
+    try {
+      await cleanupAll()
+      setMode(newMode)
+
+      if (newMode === 'selfie') {
+        await startCamera()
+      } 
+      // else {
+      //   await startScanner()
+      // }
+    } catch (err) {
+      console.error('Error changing mode:', err)
+    } finally {
+      setIsChangingMode(false)
+    }
+  }
+
+   useEffect(() => {
+    setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+  }, [])
 
   useEffect(() => {
     if (!isOpen) {
-      cleanupAll()
       setPhoto(null)
+      cleanupCamera()
       return
     }
 
-    const init = async () => {
-      try {
-        if (mode === 'selfie') {
-          await startCamera()
-        } else {
-          await startScanner()
-        }
-      } catch (err) {
-        console.error("Failed to initialize mode:", err)
-      }
+    requestLocation()
+    if (mode === 'selfie') {
+      startCamera()
     }
-
-    init()
-
-    return () => {
-      cleanupAll()
-    }
-  }, [isOpen, mode, cameraFacingMode])
-
-  const handleModeChange = async (newMode: 'selfie' | 'qr') => {
-    if (mode === newMode) return
-    setMode(newMode)
-  }
+      // else if (mode === 'qr') {
+      //     await startScanner()
+      //   }
+      }, [isOpen, mode])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-md bg-[#2a2a2a] border-[#444444] text-white"
-        aria-describedby="dialog-description">
-        
+        aria-describedby="dialog-description"
+      >
         <DialogHeader>
           <DialogTitle className="text-white">
             {type === 'masuk' ? 'Absen Masuk' : 'Absen Pulang'} - {userName}
@@ -224,32 +310,31 @@ export default function AttendanceModal({
           </p>
         </DialogHeader>
 
-        {/* Mode Selector */}
         <div className="flex justify-center gap-4 mb-4">
           <Button
             variant={mode === 'selfie' ? 'default' : 'outline'}
             onClick={() => handleModeChange('selfie')}
             className={`flex items-center gap-2 ${
-              mode === 'selfie' 
-                ? 'bg-[#3a3a3a] hover:bg-[#4a4a4a] text-white' 
+              mode === 'selfie'
+                ? 'bg-[#3a3a3a] hover:bg-[#4a4a4a] text-white'
                 : 'bg-transparent hover:bg-[#3a3a3a] text-gray-300 border-gray-600'
             }`}
           >
             <User className="h-4 w-4" />
             Selfie
           </Button>
-          <Button
+          {/* <Button
             variant={mode === 'qr' ? 'default' : 'outline'}
             onClick={() => handleModeChange('qr')}
             className={`flex items-center gap-2 ${
-              mode === 'qr' 
-                ? 'bg-[#3a3a3a] hover:bg-[#4a4a4a] text-white' 
+              mode === 'qr'
+                ? 'bg-[#3a3a3a] hover:bg-[#4a4a4a] text-white'
                 : 'bg-transparent hover:bg-[#3a3a3a] text-gray-300 border-gray-600'
             }`}
           >
             <QrCode className="h-4 w-4" />
             QR Code
-          </Button>
+          </Button> */}
         </div>
 
         <div className="space-y-4">
@@ -258,21 +343,23 @@ export default function AttendanceModal({
             <p className="text-2xl font-bold text-white">{attendanceTime}</p>
           </div>
 
-          {/* Kamera/Scanner */}
           <div className="space-y-2">
             <p className="text-gray-400">
-              {mode === 'selfie' 
-                ? (type === 'masuk' ? 'Ambil Foto Masuk' : 'Ambil Foto Pulang') 
-                : 'Scan QR Code'} (Wajib)
+              {mode === 'selfie'
+                ? type === 'masuk'
+                  ? 'Ambil Foto Masuk'
+                  : 'Ambil Foto Pulang'
+                : 'Scan QR Code'}{' '}
+              (Wajib)
             </p>
-            
+
             <div className="relative bg-[#333333] rounded-lg aspect-[4/3] overflow-hidden">
               {!photo ? (
                 mode === 'selfie' ? (
                   <div className="relative w-full h-full">
-                    <video 
-                      ref={videoRef} 
-                      autoPlay 
+                    <video
+                      ref={videoRef}
+                      autoPlay
                       playsInline
                       muted
                       className="w-full h-full object-cover"
@@ -295,7 +382,11 @@ export default function AttendanceModal({
                     </div>
                   </div>
                 ) : (
-                  <div ref={qrContainerRef} id="qr-scanner-container" className="w-full h-full relative">
+                  <div
+                    ref={qrContainerRef}
+                    id="qr-scanner-container"
+                    className="w-full h-full relative"
+                  >
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="border-2 border-white/30 rounded-lg w-[80%] h-[60%] max-w-[300px] max-h-[300px] relative">
                         <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-white/50"></div>
@@ -328,17 +419,22 @@ export default function AttendanceModal({
             </div>
           </div>
 
-          {/* Tombol Aksi */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="outline" onClick={handleClose} className="bg-[#333333] border-[#444444] text-white hover:bg-[#444444]">
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              className="bg-[#333333] border-[#444444] text-white hover:bg-[#444444]"
+            >
               Batal
             </Button>
-            <Button 
-              onClick={onSubmit} 
+            <Button
+              onClick={onSubmit}
               disabled={!photo && mode === 'selfie'}
-              className={type === 'masuk' 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'}
+              className={
+                type === 'masuk'
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }
             >
               {type === 'masuk' ? 'Absen Masuk' : 'Absen Pulang'}
             </Button>

@@ -29,7 +29,7 @@ export const menuItems: MenuItem[] = [
       { 
         name: 'Catat kehadiran', 
         icon: 'LogIn',
-        href: '/dashboard/presensi/kehadiran', 
+        href: '/dashboard/presensi/Kehadiran', 
         allowedRoles: ['DIREKTUR', 'MANAJER', 'KARYAWAN', 'TEKNISI','ADMIN']
       },
       { 
