@@ -9,6 +9,7 @@ datasource db {
 }
 
 model User {
+  id_user                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   customId             String?      @unique
   name                 String
   username             String       @unique
@@ -28,7 +29,6 @@ model User {
   resetPasswordExpires DateTime?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
-  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   attendances          Attendance[]
   barcodes             Barcode[]
 
@@ -36,16 +36,30 @@ model User {
 }
 
 model Attendance {
-  userId    String
-  date      String
-  clockIn   String
-  clockOut  String?
-  status    AttendanceStatus
-  photoIn   String?
-  photoOut  String?
-  createdAt DateTime         @default(now())
-  id        String           @id @default(uuid()) @db.Uuid
-  user      User             @relation(fields: [userId], references: [customId])
+  id_at            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user          User             @relation(fields: [userId], references: [customId])
+  userId        String
+
+  date          String
+  clockIn       String
+  clockOut      String?
+
+  status        AttendanceStatus
+
+  photoIn       String?
+  photoOut      String?
+
+  latitude      Float?           
+  longitude     Float?           
+  location      String?          
+
+  createdAt     DateTime         @default(now())
+
+  barcodeIn     String?
+  barcodeOut    String?
+
+  barcodeInAt   DateTime?
+  barcodeOutAt  DateTime?
 }
 
 model AlatKalibrasi {

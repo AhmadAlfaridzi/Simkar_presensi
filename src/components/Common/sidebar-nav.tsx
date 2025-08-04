@@ -266,14 +266,17 @@ export const SidebarNav = ({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                        <Button 
-                            variant="ghost"
-                            className="w-full justify-start hover:bg-[#1a1a1a] hover:text-white text-gray-400 px-3 py-2"
-                            onClick={logout}
-                            >
-                            <LogOut className="h-5 w-5 mr-2" />
-                            <span>Logout</span>
+                      <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start hover:bg-[#1a1a1a] hover:text-white px-3 py-2 ${
+                            pathname === item.href ? 'bg-[#1a1a1a] text-white' : 'text-gray-400'
+                          }`}
+                        >
+                          {getIconComponent(item.icon || '')}
+                          <span className="ml-2">{item.name}</span>
                         </Button>
+                      </Link>
                     </motion.div>
                   )}
                 </div>

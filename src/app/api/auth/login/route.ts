@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { username: username.trim() }
+      where: { username: username.trim() },
     })
 
     if (!user) {
