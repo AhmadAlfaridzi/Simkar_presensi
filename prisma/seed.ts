@@ -36,7 +36,6 @@ async function main() {
 
     await prisma.user.create({
       data: {
-        id: user.id,
         name: user.name,
         username: user.username,
         email: user.email,
