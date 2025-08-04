@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Camera, RotateCw, QrCode, User } from 'lucide-react'
+import { Camera, RotateCw,User } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
-
+//import {  QrCode } from 'lucide-react'
 interface AttendanceModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
@@ -84,13 +84,11 @@ export default function AttendanceModal({
           if (container && container.hasChildNodes()) {
             await qrScannerRef.current.clear()
           }
-      } catch (err: any) {
-        if (
-          !err.message?.includes('already stopped') &&
-          !err.message?.includes('not running') &&
-          !err.message?.includes('The node to be removed is not a child')
-        ) {
-          console.error('Error stopping scanner:', err)
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error('Scanner error:', err.message)
+        } else {
+          console.error('Unknown scanner error:', err)
         }
       } finally {
           qrScannerRef.current = null
