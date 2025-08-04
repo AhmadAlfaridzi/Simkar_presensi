@@ -15,14 +15,17 @@ export default function AbsenPage() {
   const [modalType, setModalType] = useState<'masuk' | 'pulang'>('masuk')
   const [attendanceTime, setAttendanceTime] = useState('')
   const [attendancePhoto, setAttendancePhoto] = useState<string | null>(null)
+  const [attendanceLocation, setAttendanceLocation] = useState<string | null>(null)
 
-  const handlePhotoTaken = (photo: string) => {
+    const handlePhotoTaken = (photo: string, locationName: string | null) => {
       setAttendancePhoto(photo)
+      setAttendanceLocation(locationName)
     }
-     const handleScanSuccess = (decodedText: string) => {
-    console.log('QR Code scanned:', decodedText)
-      handleSubmitAttendance()
-     }
+
+    //  const handleScanSuccess = (decodedText: string) => {
+    //   console.log('QR Code scanned:', decodedText)
+    //   handleSubmitAttendance()
+    //  }
 
   const [currentDate] = useState(new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -66,10 +69,12 @@ export default function AbsenPage() {
       type: modalType,
       time: attendanceTime,
       photo: attendancePhoto,
+      location: attendanceLocation,
       date: new Date().toISOString()
     })
     setIsModalOpen(false)
     setAttendancePhoto(null)
+    setAttendanceLocation(null)
   }
 
   if (!user) {
@@ -115,7 +120,7 @@ export default function AbsenPage() {
         attendanceTime={attendanceTime}
         onPhotoTaken={handlePhotoTaken}
         onSubmit={handleSubmitAttendance}
-        onScanSuccess={handleScanSuccess}
+        // onScanSuccess={handleScanSuccess}
       />
     </motion.div>
   )

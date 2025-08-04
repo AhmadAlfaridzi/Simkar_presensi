@@ -4,18 +4,19 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Camera, RotateCw, QrCode, User } from 'lucide-react'
+import { Camera, RotateCw,User } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
-
+//import {  QrCode } from 'lucide-react'
 interface AttendanceModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   type: 'masuk' | 'pulang'
   userName: string
   attendanceTime: string
-  onPhotoTaken: (photo: string) => void
+  onPhotoTaken: (photo: string, locationName: string | null) => void
   onSubmit: () => void
-  onScanSuccess: (decodedText: string) => void
+  
+  // onScanSuccess: (decodedText: string) => void
 }
 
 const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
@@ -47,7 +48,7 @@ export default function AttendanceModal({
   attendanceTime,
   onPhotoTaken,
   onSubmit,
-  onScanSuccess
+  // onScanSuccess
 }: AttendanceModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const qrContainerRef = useRef<HTMLDivElement>(null)
@@ -58,8 +59,10 @@ export default function AttendanceModal({
   const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment')
   const [isMobile, setIsMobile] = useState(false)
   const [isChangingMode, setIsChangingMode] = useState(false)
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locationName, setLocationName] = useState<string | null>(null)
   
   useEffect(() => {
@@ -84,13 +87,11 @@ export default function AttendanceModal({
           if (container && container.hasChildNodes()) {
             await qrScannerRef.current.clear()
           }
-      } catch (err: any) {
-        if (
-          !err.message?.includes('already stopped') &&
-          !err.message?.includes('not running') &&
-          !err.message?.includes('The node to be removed is not a child')
-        ) {
-          console.error('Error stopping scanner:', err)
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error('Scanner error:', err.message)
+        } else {
+          console.error('Unknown scanner error:', err)
         }
       } finally {
           qrScannerRef.current = null
@@ -187,8 +188,10 @@ export default function AttendanceModal({
 
           const photoData = canvas.toDataURL('image/jpeg')
           setPhoto(photoData)
-          onPhotoTaken(photoData)
-          video.srcObject && (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
+          onPhotoTaken(photoData, locationText)
+          if (video.srcObject) {
+            (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
+          }
         }
       },
       (error) => {
@@ -293,7 +296,7 @@ export default function AttendanceModal({
       // else if (mode === 'qr') {
       //     await startScanner()
       //   }
-      }, [isOpen, mode])
+      }, [isOpen, mode, startCamera])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
