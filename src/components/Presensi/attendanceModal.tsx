@@ -15,7 +15,7 @@ interface AttendanceModalProps {
   attendanceTime: string
   onPhotoTaken: (photo: string) => void
   onSubmit: () => void
-  onScanSuccess: (decodedText: string) => void
+  // onScanSuccess: (decodedText: string) => void
 }
 
 const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
@@ -47,7 +47,7 @@ export default function AttendanceModal({
   attendanceTime,
   onPhotoTaken,
   onSubmit,
-  onScanSuccess
+  // onScanSuccess
 }: AttendanceModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const qrContainerRef = useRef<HTMLDivElement>(null)

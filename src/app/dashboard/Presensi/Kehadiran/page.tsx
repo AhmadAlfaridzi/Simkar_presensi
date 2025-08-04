@@ -115,7 +115,7 @@ export default function AbsenPage() {
         attendanceTime={attendanceTime}
         onPhotoTaken={handlePhotoTaken}
         onSubmit={handleSubmitAttendance}
-        onScanSuccess={handleScanSuccess}
+        // onScanSuccess={handleScanSuccess}
       />
     </motion.div>
   )
