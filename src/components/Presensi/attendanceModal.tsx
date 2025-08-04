@@ -13,7 +13,7 @@ interface AttendanceModalProps {
   type: 'masuk' | 'pulang'
   userName: string
   attendanceTime: string
-  onPhotoTaken(photoData, locationText)
+  onPhotoTaken: (photo: string, locationName: string | null) => void
   onSubmit: () => void
   
   // onScanSuccess: (decodedText: string) => void
@@ -59,8 +59,10 @@ export default function AttendanceModal({
   const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment')
   const [isMobile, setIsMobile] = useState(false)
   const [isChangingMode, setIsChangingMode] = useState(false)
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [locationName, setLocationName] = useState<string | null>(null)
   
   useEffect(() => {
@@ -187,7 +189,9 @@ export default function AttendanceModal({
           const photoData = canvas.toDataURL('image/jpeg')
           setPhoto(photoData)
           onPhotoTaken(photoData, locationText)
-          video.srcObject && (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
+          if (video.srcObject) {
+            (video.srcObject as MediaStream).getTracks().forEach((track: MediaStreamTrack) => track.stop())
+          }
         }
       },
       (error) => {
@@ -292,7 +296,7 @@ export default function AttendanceModal({
       // else if (mode === 'qr') {
       //     await startScanner()
       //   }
-      }, [isOpen, mode])
+      }, [isOpen, mode, startCamera])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
