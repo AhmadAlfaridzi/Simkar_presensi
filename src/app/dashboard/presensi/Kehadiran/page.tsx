@@ -114,11 +114,12 @@ export default function AbsenPage() {
 
       if (insertError) throw insertError
     }
-
-    alert('✅ Absensi berhasil disimpan!')
-  } catch (err: any) {
-    console.error('❌ Gagal submit absensi:', err.message || err)
-    alert('Terjadi kesalahan saat menyimpan absensi.')
+  } catch (err: unknown) {
+     if (err instanceof Error) {
+    console.error('Login error:', err.message)
+  } else {
+    console.error('Unknown error:', err)
+  }
   } finally {
     setIsModalOpen(false)
     setAttendancePhoto(null)
