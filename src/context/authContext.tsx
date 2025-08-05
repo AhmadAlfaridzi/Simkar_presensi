@@ -2,10 +2,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@/types/user';
+import { UserAccount } from '@/types/user';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserAccount | null;
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
@@ -21,7 +21,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserAccount | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 

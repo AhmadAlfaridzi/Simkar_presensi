@@ -8,61 +8,88 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Karyawan {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customId         String   @unique
+  name             String
+  nip              String?  @unique
+  nik              String?  @unique
+  npwp             String?  @unique
+
+  emailPribadi     String?
+  phone            String?
+  address          String?
+  birthDate        String?
+  tempatLahir      String?
+  jenisKelamin     String?
+  agama            String?
+
+  joinDate         String
+  position         String
+  department       String
+  pendidikan       String?
+  golongan         String?
+
+  image            String?
+  kontakDarurat    String?
+  hubunganDarurat  String?
+  status           UserStatus
+  lastLogin        DateTime?
+  user             User?   
+
+  @@map("karyawan")
+}
+
 model User {
-  id_user                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customId             String?      @unique
-  name                 String
-  username             String       @unique
-  email                String       @unique
-  phone                String?
-  address              String?
-  birthDate            String?
-  joinDate             String
-  role                 Role         @default(KARYAWAN)
-  position             String
-  department           String
-  image                String?
-  status               UserStatus
-  lastLogin            DateTime?
-  passwordHash         String
-  resetPasswordToken   String?
-  resetPasswordExpires DateTime?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  attendances          Attendance[]
-  barcodes             Barcode[]
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customId     String   @unique
+  username     String   @unique
+  email        String   @unique
+  role         Role
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attendances  Attendance[]
+  barcodes     Barcode[]
+
+  karyawan     Karyawan? @relation(fields: [customId], references: [customId])
 
   @@map("users")
 }
 
 model Attendance {
-  id_at            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user          User             @relation(fields: [userId], references: [customId])
-  userId        String
+  id_at        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user         User     @relation(fields: [userId], references: [customId])
+  userId       String
 
-  date          String
-  clockIn       String
-  clockOut      String?
+  date         String
+  clockIn      String
+  clockOut     String?
+  status       AttendanceStatus
+  photoIn      String?
+  photoOut     String?
+  latitude     Float?
+  longitude    Float?
+  location     String?
+  barcodeIn    String?
+  barcodeOut   String?
+  barcodeInAt  DateTime?
+  barcodeOutAt DateTime?
+  createdAt    DateTime @default(now())
+}
 
-  status        AttendanceStatus
+model Barcode {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  userId    String
+  createdAt DateTime @default(now())
 
-  photoIn       String?
-  photoOut      String?
-
-  latitude      Float?           
-  longitude     Float?           
-  location      String?          
-
-  createdAt     DateTime         @default(now())
-
-  barcodeIn     String?
-  barcodeOut    String?
-
-  barcodeInAt   DateTime?
-  barcodeOutAt  DateTime?
+  user      User     @relation(fields: [userId], references: [customId])
 }
 
 model AlatKalibrasi {
+  id                 String   @id @default(uuid()) @db.Uuid
   nama_alat          String
   merek_model        String
   nomor_seri         String   @unique
@@ -74,10 +101,10 @@ model AlatKalibrasi {
   status             String
   foto               String?
   createdAt          DateTime @default(now())
-  id                 String   @id @default(uuid()) @db.Uuid
 }
 
 model SparePart {
+  id        String   @id @default(uuid()) @db.Uuid
   nama      String
   kode      String   @unique
   jumlah    Int
@@ -86,15 +113,6 @@ model SparePart {
   foto      String?
   status    String
   createdAt DateTime @default(now())
-  id        String   @id @default(uuid()) @db.Uuid
-}
-
-model Barcode {
-  userId    String
-  code      String   @unique
-  createdAt DateTime @default(now())
-  id        String   @id @default(uuid()) @db.Uuid
-  user      User     @relation(fields: [userId], references: [customId])
 }
 
 enum Role {
@@ -104,6 +122,8 @@ enum Role {
   MANAJER
   KARYAWAN
   TEKNISI
+  KEUANGAN
+  KEPALA_GUDANG
 }
 
 enum UserStatus {

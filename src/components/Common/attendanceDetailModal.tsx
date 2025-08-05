@@ -1,12 +1,13 @@
 'use client'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-// import { Button } from '@/components/ui/button'
+import { AttendanceStatus } from '@/types/user'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { PhotoModal } from './photoModal'
 import { useState } from 'react'
 import { AttendanceRecord } from '@/types/attendance'
 import Image from 'next/image'
+import { attendanceStatusColor, attendanceStatusLabel } from '@/lib/proper-text'
 
 interface AttendanceDetailModalProps {
   record: AttendanceRecord | null
@@ -42,13 +43,9 @@ export function AttendanceDetailModal({ record, onOpenChange }: AttendanceDetail
                   <p><span className="text-gray-400">Jam Masuk:</span> {record.clockIn || '-'}</p>
                   <p><span className="text-gray-400">Jam Pulang:</span> {record.clockOut || '-'}</p>
                   <p>
-                    <span className="text-gray-400">Status:</span> 
-                    <span className={`ml-2 ${
-                      record.status === 'Tepat Waktu' ? 'text-emerald-400' :
-                      record.status === 'Terlambat' ? 'text-amber-400' :
-                      'text-orange-300'
-                    }`}>
-                      {record.status}
+                    <span className="text-gray-400">Status:</span>
+                    <span className={`ml-2 ${attendanceStatusColor[record.status as AttendanceStatus]}`}>
+                      {attendanceStatusLabel[record.status as AttendanceStatus]}
                     </span>
                   </p>
                   <p><span className="text-gray-400">Departemen:</span> {record.employee.department}</p>

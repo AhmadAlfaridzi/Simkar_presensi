@@ -1,16 +1,16 @@
-import { UserRole } from '@/types/user';
+import { UserRole } from '@/types/user'
 
 export interface MenuItem {
-  name: string;
-  href: string;
-  icon?: string;
+  name: string
+  href: string
+  icon?: string
   items: {
-    name: string;
-    href: string;
-    icon?: string;
-    allowedRoles?: UserRole[];
-  }[];
-  allowedRoles: UserRole[];
+    name: string
+    href: string
+    icon?: string
+    allowedRoles?: UserRole[]
+  }[]
+  allowedRoles: UserRole[]
 }
 
 export const menuItems: MenuItem[] = [
@@ -19,27 +19,27 @@ export const menuItems: MenuItem[] = [
     icon: 'LayoutDashboard',
     href: '/dashboard',
     items: [],
-    allowedRoles: ['ADMIN', 'OWNER', 'DIREKTUR', 'MANAJER', 'KARYAWAN']
+    allowedRoles: ['ADMIN', 'OWNER', 'DIREKTUR', 'MANAJER', 'KEUANGAN', 'KEPALA_GUDANG', 'TEKNISI', 'KARYAWAN']
   },
   {
     name: 'Presensi',
     icon: 'CalendarCheck',
     href: '/dashboard/presensi',
     items: [
-      { 
-        name: 'Catat kehadiran', 
+      {
+        name: 'Catat kehadiran',
         icon: 'LogIn',
-        href: '/dashboard/presensi/Kehadiran', 
-        allowedRoles: ['DIREKTUR', 'MANAJER', 'KARYAWAN', 'TEKNISI','ADMIN']
+        href: '/dashboard/presensi/Kehadiran',
+        allowedRoles: ['ADMIN', 'DIREKTUR', 'MANAJER', 'KEPALA_GUDANG', 'TEKNISI', 'KARYAWAN']
       },
-      { 
-        name: 'History', 
+      {
+        name: 'History',
         icon: 'History',
         href: '/dashboard/presensi/history',
-        allowedRoles: ['ADMIN', 'OWNER', 'DIREKTUR', 'MANAJER','TEKNISI','KARYAWAN']
+        allowedRoles: ['ADMIN', 'OWNER', 'DIREKTUR', 'MANAJER', 'KEPALA_GUDANG', 'TEKNISI', 'KARYAWAN']
       }
     ],
-    allowedRoles: ['ADMIN', 'DIREKTUR', 'MANAJER', 'KARYAWAN', 'TEKNISI']
+    allowedRoles: ['ADMIN', 'DIREKTUR', 'MANAJER', 'KEPALA_GUDANG', 'TEKNISI', 'KARYAWAN']
   },
   {
     name: 'Riwayat Absensi',
@@ -67,20 +67,20 @@ export const menuItems: MenuItem[] = [
     icon: 'Box',
     href: '/dashboard/inventory',
     items: [
-      { 
-        name: 'Alat Kalibrasi', 
+      {
+        name: 'Alat Kalibrasi',
         icon: 'Wrench',
-        href: '/dashboard/inventory/alat-kalibrasi', 
-        allowedRoles: ['ADMIN', 'DIREKTUR', 'TEKNISI']
+        href: '/dashboard/inventory/alat-kalibrasi',
+        allowedRoles: ['ADMIN', 'DIREKTUR', 'KEPALA_GUDANG', 'TEKNISI']
       },
-      { 
-        name: 'Sparepart', 
+      {
+        name: 'Sparepart',
         icon: 'Package',
-        href: '/dashboard/inventory/spare-part', 
-        allowedRoles: ['ADMIN', 'TEKNISI']
+        href: '/dashboard/inventory/spare-part',
+        allowedRoles: ['ADMIN', 'KEPALA_GUDANG', 'TEKNISI']
       }
     ],
-    allowedRoles: ['ADMIN', 'DIREKTUR', 'TEKNISI']
+    allowedRoles: ['ADMIN', 'DIREKTUR', 'KEPALA_GUDANG', 'TEKNISI']
   },
   {
     name: 'Pengaturan Sistem',
@@ -88,5 +88,5 @@ export const menuItems: MenuItem[] = [
     href: '/dashboard/pengaturan',
     items: [],
     allowedRoles: ['ADMIN']
-  },
-];
+  }
+]

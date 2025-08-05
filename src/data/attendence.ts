@@ -1,10 +1,6 @@
 import { AttendanceRecord } from '@/types/attendance'
 import { subDays } from 'date-fns'
-
-// const generateEmployee = (id: string, name: string, dept: string, position: string) => ({
-//   id, name, department: dept, position
-// })
-// import { subDays, subHours, addDays } from 'date-fns';
+// import { AttendanceStatus } from '@/types/user'
 
 export const dummyAttendance: AttendanceRecord[] = [
   // Ahmad Alfaridzi (USR-001)
@@ -13,7 +9,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-001',
       name: 'Ahmad Alfaridzi',
@@ -28,7 +24,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:05',
     clockOut: '17:10',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-001',
       name: 'Ahmad Alfaridzi',
@@ -43,7 +39,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '07:55',
     clockOut: '16:50',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-001',
       name: 'Ahmad Alfaridzi',
@@ -58,7 +54,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:30',
     clockOut: '17:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-001',
       name: 'Ahmad Alfaridzi',
@@ -75,7 +71,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:10',
     clockOut: '17:05',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-002',
       name: 'Alam Alfaridzi',
@@ -90,7 +86,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:00',
     clockOut: '16:30',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-002',
       name: 'Alam Alfaridzi',
@@ -105,7 +101,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:45',
     clockOut: '17:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-002',
       name: 'Alam Alfaridzi',
@@ -120,7 +116,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-002',
       name: 'Alam Alfaridzi',
@@ -137,7 +133,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '07:50',
     clockOut: '17:20',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-010',
       name: 'Muhammad Reza Pahlevi',
@@ -152,7 +148,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-010',
       name: 'Muhammad Reza Pahlevi',
@@ -167,7 +163,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-010',
       name: 'Muhammad Reza Pahlevi',
@@ -182,7 +178,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '08:35',
     clockOut: '17:10',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-010',
       name: 'Muhammad Reza Pahlevi',
@@ -199,7 +195,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '09:00',
     clockOut: '16:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-011',
       name: 'Zulfikar',
@@ -214,7 +210,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '10:00',
     clockOut: '15:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-011',
       name: 'Zulfikar',
@@ -229,7 +225,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '09:30',
     clockOut: '16:30',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-011',
       name: 'Zulfikar',
@@ -246,7 +242,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-003',
       name: 'Afrizal Daud',
@@ -261,7 +257,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:05',
     clockOut: '17:05',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-003',
       name: 'Afrizal Daud',
@@ -276,7 +272,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:00',
     clockOut: '16:00',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-003',
       name: 'Afrizal Daud',
@@ -291,7 +287,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '07:45',
     clockOut: '17:15',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-003',
       name: 'Afrizal Daud',
@@ -308,7 +304,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-006',
       name: 'Khairul Fahmi',
@@ -323,7 +319,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:30',
     clockOut: '17:30',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-006',
       name: 'Khairul Fahmi',
@@ -338,7 +334,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-006',
       name: 'Khairul Fahmi',
@@ -353,7 +349,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-006',
       name: 'Khairul Fahmi',
@@ -370,7 +366,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-004',
       name: 'Muhammad Adfal',
@@ -385,7 +381,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:15',
     clockOut: '17:15',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-004',
       name: 'Muhammad Adfal',
@@ -400,7 +396,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '07:55',
     clockOut: '17:05',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-004',
       name: 'Muhammad Adfal',
@@ -415,7 +411,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '08:00',
     clockOut: '16:30',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-004',
       name: 'Muhammad Adfal',
@@ -432,7 +428,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-007',
       name: 'Nurul Ahyatul',
@@ -447,7 +443,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-007',
       name: 'Nurul Ahyatul',
@@ -462,7 +458,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-007',
       name: 'Nurul Ahyatul',
@@ -477,7 +473,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:25',
     clockOut: '17:05',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-007',
       name: 'Nurul Ahyatul',
@@ -492,7 +488,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 6).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-007',
       name: 'Nurul Ahyatul',
@@ -509,7 +505,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-012',
       name: 'Afriandi SE',
@@ -524,7 +520,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '07:45',
     clockOut: '17:15',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-012',
       name: 'Afriandi SE',
@@ -539,7 +535,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:30',
     clockOut: '17:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-012',
       name: 'Afriandi SE',
@@ -554,7 +550,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '08:00',
     clockOut: '16:00',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-012',
       name: 'Afriandi SE',
@@ -571,7 +567,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-013',
       name: 'Ika Maulina Sari',
@@ -586,7 +582,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:20',
     clockOut: '17:10',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-013',
       name: 'Ika Maulina Sari',
@@ -601,7 +597,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-013',
       name: 'Ika Maulina Sari',
@@ -616,7 +612,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 6).toISOString(),
     clockIn: '07:55',
     clockOut: '17:05',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-013',
       name: 'Ika Maulina Sari',
@@ -633,7 +629,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-014',
       name: 'Gita Puspa Rani',
@@ -648,7 +644,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-014',
       name: 'Gita Puspa Rani',
@@ -663,7 +659,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:35',
     clockOut: '17:05',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-014',
       name: 'Gita Puspa Rani',
@@ -678,7 +674,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '08:00',
     clockOut: '16:30',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-014',
       name: 'Gita Puspa Rani',
@@ -695,7 +691,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-005',
       name: 'Mahmudi',
@@ -710,7 +706,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '07:45',
     clockOut: '17:15',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-005',
       name: 'Mahmudi',
@@ -725,7 +721,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:30',
     clockOut: '17:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-005',
       name: 'Mahmudi',
@@ -740,7 +736,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-005',
       name: 'Mahmudi',
@@ -755,7 +751,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 6).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-005',
       name: 'Mahmudi',
@@ -772,7 +768,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-008',
       name: 'Dedy Rahmat',
@@ -787,7 +783,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:15',
     clockOut: '17:15',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-008',
       name: 'Dedy Rahmat',
@@ -802,7 +798,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '08:00',
     clockOut: '16:30',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-008',
       name: 'Dedy Rahmat',
@@ -817,7 +813,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 7).toISOString(),
     clockIn: '07:50',
     clockOut: '17:10',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-008',
       name: 'Dedy Rahmat',
@@ -834,7 +830,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-015',
       name: 'Muhammad Ridha',
@@ -849,7 +845,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-015',
       name: 'Muhammad Ridha',
@@ -864,7 +860,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:25',
     clockOut: '17:05',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-015',
       name: 'Muhammad Ridha',
@@ -879,7 +875,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-015',
       name: 'Muhammad Ridha',
@@ -894,7 +890,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 6).toISOString(),
     clockIn: '07:55',
     clockOut: '17:05',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-015',
       name: 'Muhammad Ridha',
@@ -911,7 +907,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-016',
       name: 'Faisal Abdullah',
@@ -926,7 +922,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-016',
       name: 'Faisal Abdullah',
@@ -941,7 +937,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 3).toISOString(),
     clockIn: '08:30',
     clockOut: '17:00',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-016',
       name: 'Faisal Abdullah',
@@ -956,7 +952,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 5).toISOString(),
     clockIn: '08:00',
     clockOut: '16:30',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-016',
       name: 'Faisal Abdullah',
@@ -973,7 +969,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: new Date().toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-017',
       name: 'Alfahmi',
@@ -988,7 +984,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 1).toISOString(),
     clockIn: '07:45',
     clockOut: '17:15',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-017',
       name: 'Alfahmi',
@@ -1003,7 +999,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 2).toISOString(),
     clockIn: '08:00',
     clockOut: '17:00',
-    status: 'Tepat Waktu',
+    status: 'TEPAT_WAKTU',
     employee: {
       id: 'USR-017',
       name: 'Alfahmi',
@@ -1018,7 +1014,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 4).toISOString(),
     clockIn: '08:20',
     clockOut: '17:10',
-    status: 'Terlambat',
+    status: 'TERLAMBAT',
     employee: {
       id: 'USR-017',
       name: 'Alfahmi',
@@ -1033,7 +1029,7 @@ export const dummyAttendance: AttendanceRecord[] = [
     date: subDays(new Date(), 6).toISOString(),
     clockIn: '08:00',
     clockOut: '16:45',
-    status: 'Pulang Cepat',
+    status: 'PULANG_CEPAT',
     employee: {
       id: 'USR-017',
       name: 'Alfahmi',

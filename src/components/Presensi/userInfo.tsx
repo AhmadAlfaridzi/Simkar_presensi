@@ -3,10 +3,11 @@ import { motion } from 'framer-motion'
 import { Clock, Calendar, User as UserIcon, Briefcase, Building } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { User } from '@/types/user'
+import { UserAccount } from '@/types/user'
+
 
 interface UserInfoProps {
-  user: User
+  user: UserAccount
   realTime: string
   currentDate: string
 }
@@ -23,7 +24,7 @@ export default function UserInfo({ user, realTime, currentDate }: UserInfoProps)
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">{user.name}</h1>
+                <h1 className="text-2xl font-bold text-white">{user.karyawan?.name}</h1>
                 <Badge variant="outline" className="border-blue-400 text-blue-400">
                   {user.role}
                 </Badge>
@@ -34,17 +35,17 @@ export default function UserInfo({ user, realTime, currentDate }: UserInfoProps)
                 <span className="text-sm">@{user.username}</span>
               </div>
               
-              {user.position && (
+              {user.karyawan?.position && (
                 <div className="flex items-center gap-2 text-gray-400">
                   <Briefcase className="h-4 w-4" />
-                  <span>{user.position}</span>
+                  <span>{user.karyawan.position}</span>
                 </div>
               )}
               
-              {user.department && (
+              {user.karyawan?.department && (
                 <div className="flex items-center gap-2 text-gray-400">
                   <Building className="h-4 w-4" />
-                  <span className="text-sm">{user.department}</span>
+                  <span className="text-sm">{user.karyawan?.department}</span>
                 </div>
               )}
             </div>
