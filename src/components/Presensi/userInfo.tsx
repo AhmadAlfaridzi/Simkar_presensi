@@ -4,7 +4,7 @@ import { Clock, Calendar, User as UserIcon, Briefcase, Building } from 'lucide-r
 import { Card, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { UserAccount } from '@/types/user'
-import { roleToTitleCase } from '@/lib/proper-text'
+
 
 interface UserInfoProps {
   user: UserAccount
