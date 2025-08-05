@@ -22,7 +22,7 @@ export function UserNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-gray-600">
-          <AvatarImage src={user.image || '/default-avatar.png'} alt={user.username} />
+          <AvatarImage src={user.karyawan?.image || '/default-avatar.png'} alt={user.username} />
           <AvatarFallback className="bg-gray-700 text-white">
             {user.username.slice(0, 2).toUpperCase()}
           </AvatarFallback>
