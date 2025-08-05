@@ -1,6 +1,6 @@
 import { AttendanceRecord } from '@/types/attendance'
 import { subDays } from 'date-fns'
-import { AttendanceStatus } from '@/types/user'
+// import { AttendanceStatus } from '@/types/user'
 
 export const dummyAttendance: AttendanceRecord[] = [
   // Ahmad Alfaridzi (USR-001)
