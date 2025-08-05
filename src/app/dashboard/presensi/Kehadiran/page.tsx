@@ -166,7 +166,7 @@ export default function AbsenPage() {
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         type={modalType}
-        userName={user.name}
+        userName={user.username}
         attendanceTime={attendanceTime}
         onPhotoTaken={handlePhotoTaken}
         onSubmit={handleSubmitAttendance}
