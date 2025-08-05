@@ -18,6 +18,12 @@ export const attendanceStatusLabel: Record<AttendanceStatus, string> = {
   PULANG_CEPAT: 'Pulang Cepat',
 }
 
+export const attendanceStatusColor: Record<AttendanceStatus, string> = {
+  TEPAT_WAKTU: 'text-emerald-400',
+  TERLAMBAT: 'text-amber-400',
+  PULANG_CEPAT: 'text-orange-300',
+}
+
 export const UserStatusLabel: Record<UserStatus, string> = {
   AKTIF: 'Aktif',
   NONAKTIF: 'Non Aktif',
