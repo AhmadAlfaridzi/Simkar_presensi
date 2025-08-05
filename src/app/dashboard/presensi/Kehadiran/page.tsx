@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/authContext'
-
+import { supabase } from '@/lib/supabase'
 import { motion } from 'framer-motion'
 import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
@@ -63,19 +63,68 @@ export default function AbsenPage() {
     setIsModalOpen(true)
   }
 
-  const handleSubmitAttendance = () => {
-    console.log({
-      userId: user?.id,
-      type: modalType,
-      time: attendanceTime,
-      photo: attendancePhoto,
-      location: attendanceLocation,
-      date: new Date().toISOString()
-    })
+  const handleSubmitAttendance = async () => {
+  if (!user) return
+
+  try {
+    const isMasuk = modalType === 'masuk'
+
+    const updateFields = isMasuk
+      ? {
+          date: new Date().toISOString().split('T')[0], // format: YYYY-MM-DD
+          clockIn: attendanceTime,
+          photoIn: attendancePhoto,
+          latitude: null, 
+          longitude: null,
+          location: attendanceLocation,
+          status: 'TEPAT_WAKTU', 
+        }
+      : {
+          clockOut: attendanceTime,
+          photoOut: attendancePhoto,
+          location: attendanceLocation,
+        }
+
+    const { data: existing, error: fetchError } = await supabase
+      .from('Attendance')
+      .select('id_at')
+      .eq('userId', user.id)
+      .eq('date', new Date().toISOString().split('T')[0])
+      .single()
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      throw fetchError
+    }
+
+    if (existing) {
+      // update clockOut jika record sudah ada (absen pulang)
+      const { error: updateError } = await supabase
+        .from('Attendance')
+        .update(updateFields)
+        .eq('id_at', existing.id_at)
+
+      if (updateError) throw updateError
+    } else {
+      // insert baru jika record belum ada (absen masuk)
+      const { error: insertError } = await supabase.from('Attendance').insert({
+        id_at: crypto.randomUUID(), // atau biarkan Supabase generate otomatis jika pakai default
+        userId: user.customId,
+        ...updateFields
+      })
+
+      if (insertError) throw insertError
+    }
+
+    alert('✅ Absensi berhasil disimpan!')
+  } catch (err: any) {
+    console.error('❌ Gagal submit absensi:', err.message || err)
+    alert('Terjadi kesalahan saat menyimpan absensi.')
+  } finally {
     setIsModalOpen(false)
     setAttendancePhoto(null)
     setAttendanceLocation(null)
   }
+}
 
   if (!user) {
     return (
