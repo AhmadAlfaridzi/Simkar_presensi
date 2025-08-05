@@ -23,12 +23,12 @@ import {
   Package,
   LogIn
 } from 'lucide-react';
-import { User } from '@/types/user';
+import { UserAccount } from '@/types/user';
 import { menuItems } from '@/data/menu-items';
 import { roleToTitleCase } from '@/types/roles';
 
 interface SidebarNavProps {
-  user: User | null;
+  user: UserAccount | null;
   isMobile?: boolean;
   isMobileMenuOpen?: boolean;
   setIsMobileMenuOpen?: (open: boolean) => void;
