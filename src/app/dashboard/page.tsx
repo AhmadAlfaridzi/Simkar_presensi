@@ -15,7 +15,7 @@ import { AttendanceDetailModal } from '@/components/Common/attendanceDetailModal
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/Common/pageHeader'
 import { usePageMetadata } from '@/context/pageMetadataContext'
-import { attendanceStatusLabel } from '@/types/proper-text'
+import { attendanceStatusLabel } from '@/lib/proper-text'
 
 const calculateStats = (attendanceData: AttendanceRecord[]) => {
   const today = new Date().toISOString().split('T')[0]

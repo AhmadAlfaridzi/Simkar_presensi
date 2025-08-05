@@ -7,7 +7,7 @@ import { PhotoModal } from './photoModal'
 import { useState } from 'react'
 import { AttendanceRecord } from '@/types/attendance'
 import Image from 'next/image'
-import { attendanceStatusColor, attendanceStatusLabel } from '@/types/proper-text'
+import { attendanceStatusColor, attendanceStatusLabel } from '@/lib/proper-text'
 
 interface AttendanceDetailModalProps {
   record: AttendanceRecord | null
