@@ -1,5 +1,5 @@
 'use client'
-
+import { AttendanceStatus } from '@prisma/client'
 import { useAuth } from '@/context/authContext'
 import { redirect } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
@@ -23,9 +23,9 @@ const calculateStats = (attendanceData: AttendanceRecord[]) => {
 
   return {
     totalKaryawan: uniqueEmployees,
-    tepatWaktu: todayRecords.filter(r => r.status === 'Tepat Waktu').length,
-    terlambat: todayRecords.filter(r => r.status === 'Terlambat').length,
-    tidakHadir: uniqueEmployees - todayRecords.length
+  tepatWaktu: todayRecords.filter(r => r.status === AttendanceStatus.TEPAT_WAKTU).length,
+  terlambat: todayRecords.filter(r => r.status === AttendanceStatus.TERLAMBAT).length,
+  tidakHadir: uniqueEmployees - todayRecords.length
   }
 }
 
