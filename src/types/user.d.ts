@@ -1,7 +1,7 @@
 export type UserRole = 'ADMIN' | 'OWNER' | 'DIREKTUR' | 'MANAJER' | 'KARYAWAN' | 'TEKNISI' | 'KEUANGAN' | 'KEPALA_GUDANG';
 export type UserStatus = 'AKTIF' | 'NONAKTIF' | 'DITANGGUHKAN';
 export type AttendanceStatus = 'TEPAT_WAKTU' | 'TERLAMBAT' | 'PULANG_CEPAT';
-export type ApprovalStatus = 'Pending' | 'Disetujui' | 'Ditolak';
+export type ApprovalStatus = 'PENDING' | 'DISETUJUI' | 'DITOLAK';
 
 export interface KaryawanProfile {
   id: string;

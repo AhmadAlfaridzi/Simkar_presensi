@@ -15,6 +15,7 @@ import { AttendanceDetailModal } from '@/components/Common/attendanceDetailModal
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/Common/pageHeader'
 import { usePageMetadata } from '@/context/pageMetadataContext'
+import { attendanceStatusLabel } from '@/types/proper-text'
 
 const calculateStats = (attendanceData: AttendanceRecord[]) => {
   const today = new Date().toISOString().split('T')[0]
@@ -23,9 +24,9 @@ const calculateStats = (attendanceData: AttendanceRecord[]) => {
 
   return {
     totalKaryawan: uniqueEmployees,
-  tepatWaktu: todayRecords.filter(r => r.status === AttendanceStatus.TEPAT_WAKTU).length,
-  terlambat: todayRecords.filter(r => r.status === AttendanceStatus.TERLAMBAT).length,
-  tidakHadir: uniqueEmployees - todayRecords.length
+    tepatWaktu: todayRecords.filter(r => r.status === AttendanceStatus.TEPAT_WAKTU).length,
+    terlambat: todayRecords.filter(r => r.status === AttendanceStatus.TERLAMBAT).length,
+    tidakHadir: uniqueEmployees - todayRecords.length
   }
 }
 
@@ -85,13 +86,14 @@ export default function Page() {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => {
-        const status = row.getValue('status') as string
+        const status = row.getValue('status') as AttendanceStatus
+        const label = attendanceStatusLabel[status]
         let color = 'text-gray-400'
-        if (status === 'Tepat Waktu') color = 'text-emerald-400'
-        else if (status === 'Terlambat') color = 'text-amber-400'
-        else if (status === 'Pulang Cepat') color = 'text-orange-300'
-        return <span className={`${color} font-medium`}>{status}</span>
-      }
+        if (status === AttendanceStatus.TEPAT_WAKTU) color = 'text-emerald-400'
+        else if (status === AttendanceStatus.TERLAMBAT) color = 'text-amber-400'
+        else if (status === AttendanceStatus.PULANG_CEPAT) color = 'text-orange-300'
+          return <span className={`${color} font-medium`}>{label}</span>
+        }
     },
     {
       id: 'actions',
