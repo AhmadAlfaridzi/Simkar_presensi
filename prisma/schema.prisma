@@ -52,7 +52,9 @@ model User {
 
   attendances  Attendance[]
   barcodes     Barcode[]
-
+  izinLokasi   AbsensiIzinLokasi[]
+  kantorId    String?    @db.Uuid
+  kantor      Kantor?    @relation("KantorUsers", fields: [kantorId], references: [id])
   karyawan     Karyawan? @relation(fields: [customId], references: [customId])
 
   @@map("users")
@@ -113,6 +115,45 @@ model SparePart {
   foto      String?
   status    String
   createdAt DateTime @default(now())
+}
+
+model LokasiDinas {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  latitude    Float
+  longitude   Float
+  radius     Int      @default(100)
+
+  izinList   AbsensiIzinLokasi[]
+}
+
+model AbsensiIzinLokasi {
+  id          String       @id @default(uuid()) @db.Uuid
+  user        User         @relation(fields: [userId], references: [customId])
+  userId      String
+
+  lokasi      LokasiDinas  @relation(fields: [lokasiId], references: [id])
+  lokasiId    String       @db.Uuid
+
+  kantor      Kantor?      @relation(fields: [kantorId], references: [id])
+  kantorId    String?      @db.Uuid
+
+  tanggal     DateTime
+  keperluan   String?
+  createdAt   DateTime     @default(now())
+}
+
+model Kantor {
+  id          String   @id @default(uuid())  @db.Uuid
+  nama        String
+  alamat      String?
+  latitude    Float
+  longitude   Float
+  radiusMeter Float     
+  users       User[]    @relation("KantorUsers")
+  izinLokasi  AbsensiIzinLokasi[]  
+
+  createdAt   DateTime @default(now())
 }
 
 enum Role {

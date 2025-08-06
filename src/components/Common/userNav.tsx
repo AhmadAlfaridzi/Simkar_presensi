@@ -17,12 +17,12 @@ export function UserNav() {
   const { user, logout } = useAuth()
 
   if (!user) return null
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-gray-600">
-          <AvatarImage src={user.karyawan?.image || '/default-avatar.png'} alt={user.username} />
+          <AvatarImage src={user.karyawan?.image || '/images/placeholder-user.jpg'} alt={user.username} />
+          
           <AvatarFallback className="bg-gray-700 text-white">
             {user.username.slice(0, 2).toUpperCase()}
           </AvatarFallback>

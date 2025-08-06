@@ -39,10 +39,12 @@ export async function POST(request: Request) {
         username: user.username,
         email: user.email,
         role: user.role,
-        name: user.karyawan?.name || '',
-        position: user.karyawan?.position || '',
-        department: user.karyawan?.department || '',
-        image: user.karyawan?.image || '',
+        karyawan: {
+          name: user.karyawan?.name || '',
+          position: user.karyawan?.position || '',
+          department: user.karyawan?.department || '',
+          image: user.karyawan?.image || '',
+        }
       }
     })
   } catch (error) {

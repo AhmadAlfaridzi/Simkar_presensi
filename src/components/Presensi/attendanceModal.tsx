@@ -116,11 +116,19 @@ export default function AttendanceModal({
     return
   }
 
+   let retry = 0
+  const MAX_RETRY = 10
+
   const watcher = navigator.geolocation.watchPosition(
     async (position) => {
       const { latitude, longitude, accuracy } = position.coords
       console.log(`Lokasi update: lat=${latitude}, lon=${longitude}, akurasi=${accuracy}m`)
 
+      if (accuracy > 100 && retry < MAX_RETRY) {
+        retry++
+        console.warn(`⚠️ Akurasi terlalu rendah (${Math.round(accuracy)}m), mencoba lagi... (${retry}/${MAX_RETRY})`)
+        return
+      }
 
       // hanya jika akurat, baru simpan
       setLocation({ lat: latitude, lng: longitude })
