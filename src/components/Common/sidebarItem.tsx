@@ -19,7 +19,7 @@ interface SidebarItemProps {
   onItemClick: () => void;
 }
 
-export const SidebarItem = ({ item, activeMenu, isMobile = false, onItemClick }: SidebarItemProps) => {
+export const SidebarItem = ({ item, activeMenu, onItemClick }: SidebarItemProps) => {
   return item.items.length > 0 ? (
     <Collapsible>
       <CollapsibleTrigger asChild>
