@@ -42,7 +42,20 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+-d
+-H
 
+prisma/dev.db
+prisma/dev.sqlite
+prisma/migrations/
+
+.DS_Store
+*.log
+*-lock.yaml
+*.tsbuildinfo
+
+Supabase CLI 
+.supabase/
 *.tsbuildinfo
 
 # Log files
@@ -65,6 +78,9 @@ coverage/
 *.sqlite
 *.dump
 
+<<<<<<< HEAD
 
 -d
 -H
+=======
+>>>>>>> riwayat-absensi

@@ -1,12 +1,12 @@
 import { UserNav } from '@/components/Common/userNav'
 import { Menu } from 'lucide-react'
-import { User } from '@/types/user'
+import { UserAccount } from '@/types/user'
 
 interface NavbarProps {
   isMobile: boolean
   toggleMobileMenu: () => void
   pageTitle: string
-  user: User
+  user: UserAccount
 }
 
 export function Navbar({ isMobile, toggleMobileMenu, pageTitle }: NavbarProps) {

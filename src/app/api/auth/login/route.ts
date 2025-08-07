@@ -11,7 +11,10 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { username: username.trim() }
+      where: { username: username.trim() },
+      include: {
+        karyawan: true, 
+      },
     })
 
     if (!user) {
@@ -24,21 +27,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username atau password salah' }, { status: 401 })
     }
 
-    if (user.status !== 'AKTIF') {
+    // kamu bisa tambahkan validasi status akun dari data karyawan jika mau
+    if (user.karyawan?.status !== 'AKTIF') {
       return NextResponse.json({ error: 'Akun tidak aktif. Hubungi admin.' }, { status: 403 })
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        id: user.id,
-        name: user.name,
+        id: user.customId,
         username: user.username,
         email: user.email,
         role: user.role,
-        position: user.position,
-        department: user.department,
-        image: user.image,
+        karyawan: {
+          name: user.karyawan?.name || '',
+          position: user.karyawan?.position || '',
+          department: user.karyawan?.department || '',
+          image: user.karyawan?.image || '',
+        }
       }
     })
   } catch (error) {
