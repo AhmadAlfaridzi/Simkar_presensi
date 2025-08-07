@@ -78,9 +78,7 @@ coverage/
 *.sqlite
 *.dump
 
-<<<<<<< HEAD
+at-absensi
 
--d
--H
-=======
->>>>>>> riwayat-absensi
+/src/data/*
+!/src/data/menu-items.ts
