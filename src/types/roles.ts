@@ -1,11 +1,12 @@
-
-import type { UserRole } from '@/types/user'; 
+import type { UserRole } from '@/types/user';
 
 export const roleToTitleCase: Record<UserRole, string> = {
   ADMIN: 'Admin',
   OWNER: 'Owner',
   DIREKTUR: 'Direktur',
   MANAJER: 'Manajer',
-  KARYAWAN: 'Karyawan',
-  TEKNISI: 'Teknisi'
+  KEPALA_GUDANG: 'Kepala Gudang',
+  KEUANGAN: 'Keuangan',
+  TEKNISI: 'Teknisi',
+  KARYAWAN: 'Karyawan'
 };
