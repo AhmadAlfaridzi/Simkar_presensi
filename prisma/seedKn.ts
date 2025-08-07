@@ -1,13 +1,13 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../src/lib/prisma'
 
 async function main() {
-  await prisma.({
+  await prisma.kantor.create({
     data: {
-      nama: 'Kantor Pusat',
-      alamat: 'Jl. Jend. Sudirman No. 123, Jakarta',
-      latitude: 5.186042001404348, 
-      longitude: 97.14615234609988,
-      radiusMeter: 100, // radius valid area
+      nama: 'Apotek Aishy',
+      alamat: 'Jl. Banda Aceh - Medan No.07, Mns Mee, Kec. Muara Dua, Kota Lhokseumawe, Aceh 24355',
+      latitude: 5.166254982245708, 
+      longitude: 97.13566795922469,
+      radiusMeter: 20, 
     },
   })
 
