@@ -91,7 +91,7 @@ export default function Page() {
         let color = 'text-gray-400'
         if (status === AttendanceStatus.TEPAT_WAKTU) color = 'text-emerald-400'
         else if (status === AttendanceStatus.TERLAMBAT) color = 'text-amber-400'
-        else if (status === AttendanceStatus.PULANG_CEPAT) color = 'text-orange-300'
+        else if (status === AttendanceStatus.TIDAK_HADIR) color = 'text-orange-300'
           return <span className={`${color} font-medium`}>{label}</span>
         }
     },
