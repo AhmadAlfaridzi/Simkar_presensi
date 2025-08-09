@@ -1,4 +1,4 @@
-import type { AttendanceStatus } from './user';
+import type { AttendanceStatus, KaryawanProfile } from './user';
 
 export interface AttendanceRecord {
   id_at: string;
@@ -18,4 +18,6 @@ export interface AttendanceRecord {
   barcodeInAt?: string | null;
   barcodeOutAt?: string | null;
   createdAt?: string | null;
+
+ karyawan?: KaryawanProfile | null;
 }
