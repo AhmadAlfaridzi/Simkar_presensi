@@ -16,6 +16,7 @@ import { redirect } from 'next/navigation'
 import { usePageMetadata } from '@/context/pageMetadataContext'
 import { attendanceStatusLabel } from '@/lib/proper-text'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { useMobile } from '@/hooks/use-mobile'
 
 interface Props {
   initialAttendance: AttendanceRecord[]
@@ -41,7 +42,9 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
   const [allEmployees, setAllEmployees] = useState(initialEmployees)
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null)
   const [loading, setLoading] = useState(false)
-  const attendanceData = [
+  const isMobile = useMobile()
+
+  const attendanceDataY = [
     { name: 'Jan', hadir: 45, terlambat: 5, tidakHadir: 2 },
     { name: 'Feb', hadir: 42, terlambat: 8, tidakHadir: 3 },
     { name: 'Mar', hadir: 48, terlambat: 2, tidakHadir: 1 },
@@ -55,6 +58,14 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
     { name: 'Nov', hadir: 48, terlambat: 2, tidakHadir: 1 },
     { name: 'Des', hadir: 42, terlambat: 8, tidakHadir: 3 },
   ]
+
+ const attendanceDataM = [
+    { name: '1 Apr', hadir: 2, terlambat: 0, tidakHadir: 1 },
+    { name: '2 Apr', hadir: 4, terlambat: 1, tidakHadir: 0 },
+    { name: '3 Apr', hadir: 3, terlambat: 2, tidakHadir: 0 },
+    { name: '4 Apr', hadir: 5, terlambat: 0, tidakHadir: 0 },
+ ]
+
   useEffect(() => {
     setMetadata({
       title: 'Dashboard',
@@ -148,64 +159,64 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
   ]
 
   return (
-    <div className="space-y-6">
-      <PageHeader />
-
-      {/* Statistik */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatBox title="Total Karyawan" value={dashboardStats.totalKaryawan} color="blue" Icon={Users} />
-        <StatBox title="Tepat Waktu" value={dashboardStats.tepatWaktu} color="green" Icon={CheckCircle2} />
-        <StatBox title="Terlambat" value={dashboardStats.terlambat} color="yellow" Icon={Clock} />
-        <StatBox title="Tidak Hadir" value={dashboardStats.tidakHadir} color="red" Icon={XCircle} />
-      </div>
-
-     {/* Grafik Kehadiran */}
-    <div className="bg-[#1a1a1a] p-4 rounded-lg shadow mt-6">
-      <h2 className="text-xl font-bold mb-4">Grafik Kehadiran Karyawan</h2>
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={attendanceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-            <XAxis dataKey="name" stroke="#a0aec0" />
-            <YAxis stroke="#a0aec0" />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#2d3748' }}
-              itemStyle={{ color: '#a0aec0' }}
-            />
-            <Legend />
-            <Bar dataKey="hadir" fill="#48bb78" name="Hadir" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="terlambat" fill="#ecc94b" name="Terlambat" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="tidakHadir" fill="#f56565" name="Tidak Hadir" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-
-      {/* Tabel Absensi Hari Ini */}
-      <div className="bg-[#1a1a1a] p-4 rounded-lg shadow">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Absensi Hari Ini</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" className="bg-transparent border-[#2e2e2e] text-gray-300 hover:bg-[#252525] hover:text-white px-4 py-2 text-sm">
-              Ekspor Data
-            </Button>
-            <Link href="/dashboard/riwayat-absensi" passHref>
-              <Button variant="outline" className="bg-transparent border-[#2e2e2e] text-gray-300 hover:bg-[#252525] hover:text-white px-4 py-2 text-sm">
-                Lihat Semua
-              </Button>
-            </Link>
-          </div>
+   <div className="max-w-full px-4 sm:px-6 lg:px-8 mx-auto space-y-5 border-white/10 min-h-screen">
+       {!isMobile && <PageHeader />}
+        {/* Statistik */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <StatBox title="Total Karyawan" value={dashboardStats.totalKaryawan} color="blue" Icon={Users} />
+            <StatBox title="Tepat Waktu" value={dashboardStats.tepatWaktu} color="green" Icon={CheckCircle2} />
+            <StatBox title="Terlambat" value={dashboardStats.terlambat} color="yellow" Icon={Clock} />
+            <StatBox title="Tidak Hadir" value={dashboardStats.tidakHadir} color="red" Icon={XCircle} />
         </div>
-        <GenericTable<AttendanceRecord>
-          columns={todayAttendanceColumns}
-          data={todayAttendance}
-          noDataMessage="Tidak ada data absensi hari ini"
-          showPagination={todayAttendance.length > 5}
-          pageSize={5}
-          isLoading={loading}
-        />
-        <AttendanceDetailModal record={selectedRecord} onOpenChange={(open) => !open && setSelectedRecord(null)} />
-      </div>
+        
+        {/* Grafik Kehadiran */}
+      <div className="bg-[#1a1a1a] p-4 sm:p-6 rounded-lg shadow mt-6">
+        <h2 className="text-lg sm:text-xl font-bold mb-4">Grafik Kehadiran Karyawan</h2>
+        <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={isMobile ? attendanceDataM  : attendanceDataY }>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                    <XAxis dataKey="name" stroke="#a0aec0" />
+                    <YAxis stroke="#a0aec0" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#2d3748' }} itemStyle={{ color: '#a0aec0' }} />
+                    <Legend />
+                    <Bar dataKey="hadir" fill="#48bb78" name="Hadir" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="terlambat" fill="#ecc94b" name="Terlambat" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="tidakHadir" fill="#f56565" name="Tidak Hadir" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+        </div>
+
+        {/* Tabel Absensi Hari Ini */}
+        
+        <div className="bg-[#1a1a1a] p-4 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Absensi Hari Ini</h2>
+                <div className="flex gap-2">
+                <Button variant="outline" className="bg-transparent border-[#2e2e2e] text-gray-300 hover:bg-[#252525] hover:text-white px-4 py-2 text-sm">
+                    Ekspor Data
+                </Button>
+                <Link href="/dashboard/riwayat-absensi" passHref>
+                    <Button variant="outline" className="bg-transparent border-[#2e2e2e] text-gray-300 hover:bg-[#252525] hover:text-white px-4 py-2 text-sm">
+                    Lihat Semua
+                    </Button>
+                </Link>
+                </div>
+            </div>
+
+          <div className="overflow-x-auto">
+            <GenericTable<AttendanceRecord>
+            columns={todayAttendanceColumns}
+            data={todayAttendance}
+            noDataMessage="Tidak ada data absensi hari ini"
+            showPagination={todayAttendance.length > 5}
+            pageSize={5}
+            isLoading={loading}
+            />
+         </div>
+         <AttendanceDetailModal record={selectedRecord} onOpenChange={(open) => !open && setSelectedRecord(null)} />
+        </div>
     </div>
   )
 }
@@ -224,8 +235,8 @@ function StatBox({ title, value, subtitle, color, Icon }: { title: string; value
     >
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-gray-400 text-sm">{title}</p>
-          <h2 className="text-2xl font-bold mt-1">{value}</h2>
+          <p className="text-gray-400 text-sm sm:text-base">{title}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mt-1">{value}</h2>
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
         <div className={`p-3 rounded-full bg-gradient-to-br from-${color}-500/20 to-${color}-600/20`}>

@@ -12,9 +12,13 @@ import { PageMetadataProvider } from '@/context/pageMetadataContext'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, isLoading, logout } = useAuth()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const isMobile = useMobile()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile)
   const router = useRouter()
+
+  useEffect(() => {
+    setIsSidebarOpen(!isMobile)
+  }, [isMobile])
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -27,7 +31,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen bg-[#121212] text-white">
       {/* Sidebar */}
-      {!isMobile && user && <SidebarNav user={user} logout={logout} />}
+      {!isMobile && user && (
+        <div
+          className={`transition-all duration-300  h-full ${
+            isSidebarOpen ? 'w-64' : 'w-0 overflow-hidden'
+          }`}
+        >
+          <SidebarNav user={user} logout={logout} />
+        </div>
+      )}
+       
       {isMobile && isSidebarOpen && user && (
         <SidebarNav
           user={user}
@@ -38,23 +51,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         />
       )}
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 ">
         {/* Navbar */}
-        <header className="border-b border-[#2e2e2e] bg-[#1a1a1a] px-6 py-4 shadow-sm flex justify-between items-center">
-          {isMobile && (
-            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
-              <Menu className="text-white w-6 h-6" />
-            </button>
-          )}
+        <header className="border-b border-[#2e2e2e] bg-[#1a1a1a] px-2 sm:px-4 md:px-6 py-4 shadow-sm flex justify-between items-center">
+          <button
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            className="p-2 hover:bg-gray-700 rounded"
+          >
+            <Menu className="text-white w-6 h-6" />
+          </button>
           <div className="ml-auto">
             <UserNav />
           </div>
         </header>
 
         {/* Page content with context */}
-        <main className="flex-1 overflow-y-auto px-6 py-6">
+        <main className="flex-1 overflow-auto w-full h-full pt-4 md:pt-4 lg:pt-0">
           <PageMetadataProvider>
-            <SmoothTransition>{children}</SmoothTransition>
+                <SmoothTransition>{children}</SmoothTransition>
           </PageMetadataProvider>
         </main>
       </div>
