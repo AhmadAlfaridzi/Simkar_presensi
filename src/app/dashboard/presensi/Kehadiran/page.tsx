@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/authContext'
-import { supabase } from '@/lib/supabase'
 import { motion } from 'framer-motion'
 import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
@@ -17,10 +16,12 @@ export default function AbsenPage() {
   const [attendancePhoto, setAttendancePhoto] = useState<string | null>(null)
   const [attendanceLocation, setAttendanceLocation] = useState<string | null>(null)
 
-    const handlePhotoTaken = (photo: string, locationName: string | null) => {
-      setAttendancePhoto(photo)
-      setAttendanceLocation(locationName)
-    }
+  const [geoCoords, setGeoCoords] = useState<{latitude: number, longitude: number} | null>(null)
+
+  const handlePhotoTaken = (photo: string, locationName: string | null) => {
+    setAttendancePhoto(photo)
+    setAttendanceLocation(locationName)
+  }
 
     //  const handleScanSuccess = (decodedText: string) => {
     //   console.log('QR Code scanned:', decodedText)
@@ -54,78 +55,105 @@ export default function AbsenPage() {
     return () => clearInterval(timer)
   }, [])
 
-  const openAttendanceModal = (type: 'masuk' | 'pulang') => {
+  const requestLocation = () => {
+    return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation not supported'))
+        return
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          })
+        },
+        (error) => {
+          reject(error)
+        },
+        { timeout: 10000 } 
+      )
+    })
+  }
+  
+  const openAttendanceModal = async (type: 'masuk' | 'pulang') => {
     setModalType(type)
     setAttendanceTime(new Date().toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit'
     }))
+
+    try {
+      const coords = await requestLocation()
+      setGeoCoords(coords)
+      setAttendanceLocation(`Lat: ${coords.latitude.toFixed(5)}, Lon: ${coords.longitude.toFixed(5)}`)
+    } catch (error) {
+          setGeoCoords(null)
+      setAttendanceLocation(null)
+      console.warn('Failed to get location:', error)
+    }
+
     setIsModalOpen(true)
   }
 
   const handleSubmitAttendance = async () => {
-  if (!user) return
+    if (!user) return;
 
-  try {
-    const isMasuk = modalType === 'masuk'
+    try {
+      const isMasuk = modalType === 'masuk';
 
-    const updateFields = isMasuk
-      ? {
-          date: new Date().toISOString().split('T')[0], // format: YYYY-MM-DD
-          clockIn: attendanceTime,
-          photoIn: attendancePhoto,
-          latitude: null, 
-          longitude: null,
-          location: attendanceLocation,
-          status: 'TEPAT_WAKTU', 
-        }
-      : {
-          clockOut: attendanceTime,
-          photoOut: attendancePhoto,
-          location: attendanceLocation,
-        }
+      const attendancePayload = isMasuk
+        ? {
+            userId: user.customId,
+            date: new Date().toISOString(),
+            clockIn: attendanceTime,
+            clockOut: null,
+            status: 'TEPAT_WAKTU',
+            photoIn: attendancePhoto,
+            photoOut: null,
+            latitude: geoCoords?.latitude ?? null,
+            longitude: geoCoords?.longitude ?? null,
+            location: attendanceLocation,
+          }
+        : {
+            userId: user.customId,
+            date: new Date().toISOString(),
+            clockIn: null,
+            clockOut: attendanceTime,
+            status: 'TEPAT_WAKTU',
+            photoIn: null,
+            photoOut: attendancePhoto,
+            latitude: geoCoords?.latitude ?? null,
+            longitude: geoCoords?.longitude ?? null,
+            location: attendanceLocation,
+          };
+          const response = await fetch('/api/presensi/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(attendancePayload),
+          });
 
-    const { data: existing, error: fetchError } = await supabase
-      .from('Attendance')
-      .select('id_at')
-      .eq('userId', user.id)
-      .eq('date', new Date().toISOString().split('T')[0])
-      .single()
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to submit attendance');
+      }
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      throw fetchError
+      const result = await response.json();
+      console.log('Attendance saved:', result);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error submitting attendance:', error.message);
+      } else {
+        console.error('Unknown error:', error);
+      }
+    } finally {
+      setIsModalOpen(false);
+      setAttendancePhoto(null);
+      setAttendanceLocation(null);
+      setGeoCoords(null)
     }
+  };
 
-    if (existing) {
-      // update clockOut jika record sudah ada (absen pulang)
-      const { error: updateError } = await supabase
-        .from('Attendance')
-        .update(updateFields)
-        .eq('id_at', existing.id_at)
-
-      if (updateError) throw updateError
-    } else {
-      // insert baru jika record belum ada (absen masuk)
-      const { error: insertError } = await supabase.from('Attendance').insert({
-        id_at: crypto.randomUUID(), // atau biarkan Supabase generate otomatis jika pakai default
-        userId: user.customId,
-        ...updateFields
-      })
-
-      if (insertError) throw insertError
-    }
-  } catch (err: unknown) {
-     if (err instanceof Error) {
-    console.error('Login error:', err.message)
-  } else {
-    console.error('Unknown error:', err)
-  }
-  } finally {
-    setIsModalOpen(false)
-    setAttendancePhoto(null)
-    setAttendanceLocation(null)
-  }
-}
 
   if (!user) {
     return (

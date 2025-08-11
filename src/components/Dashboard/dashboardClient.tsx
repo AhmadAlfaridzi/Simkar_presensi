@@ -162,7 +162,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
    <div className="max-w-full px-4 sm:px-6 lg:px-8 mx-auto space-y-5 border-white/10 min-h-screen">
        {!isMobile && <PageHeader />}
         {/* Statistik */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2  md:grid-cols-4 gap-4">
             <StatBox title="Total Karyawan" value={dashboardStats.totalKaryawan} color="blue" Icon={Users} />
             <StatBox title="Tepat Waktu" value={dashboardStats.tepatWaktu} color="green" Icon={CheckCircle2} />
             <StatBox title="Terlambat" value={dashboardStats.terlambat} color="yellow" Icon={Clock} />
