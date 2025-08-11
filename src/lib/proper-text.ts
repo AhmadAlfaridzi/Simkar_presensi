@@ -15,7 +15,7 @@ export const roleToTitleCase: Record<UserRole, string> = {
 export const attendanceStatusLabel: Record<AttendanceStatus, string> = {
   TEPAT_WAKTU: 'Tepat Waktu',
   TERLAMBAT: 'Terlambat',
-  TIDAK_HADIR:'ulang Cepat',
+  TIDAK_HADIR:'Tidak Hadir',
 }
 
 export const attendanceStatusColor: Record<AttendanceStatus, string> = {
