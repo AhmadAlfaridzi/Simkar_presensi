@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
 import UserInfo from '@/components/Presensi/userInfo'
+import type { KantorType, LokasiDinasType } from '@/types/location'
+
 
 export default function AbsenPage() {
   const { user } = useAuth()
@@ -17,7 +19,8 @@ export default function AbsenPage() {
   const [attendanceLocation, setAttendanceLocation] = useState<string | null>(null)
 
   const [geoCoords, setGeoCoords] = useState<{latitude: number, longitude: number} | null>(null)
-
+  const [kantor, setKantor] = useState<KantorType | null>(null)
+  const [izinLokasi, setIzinLokasi] = useState<LokasiDinasType | null>(null)
   const handlePhotoTaken = (photo: string, locationName: string | null) => {
     setAttendancePhoto(photo)
     setAttendanceLocation(locationName)
@@ -44,6 +47,21 @@ export default function AbsenPage() {
   )
 
   useEffect(() => {
+    if (!user) return
+
+    async function fetchUserLocations() {
+      const kantorData: KantorType = await fetch(`/api/user/${user.customId}/kantor`).then(res => res.json())
+      const izinLokasiData: LokasiDinasType | null = await fetch(`/api/user/${user.customId}/izin-lokasi-terbaru`).then(res => res.json()).catch(() => null)
+
+      setKantor(kantorData)
+      setIzinLokasi(izinLokasiData)
+    }
+    fetchUserLocations()
+  }, [user])
+  
+
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setRealTime(new Date().toLocaleTimeString('id-ID', { 
         hour: '2-digit', 
@@ -56,44 +74,117 @@ export default function AbsenPage() {
   }, [])
 
   const requestLocation = () => {
-    return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation not supported'))
-        return
-      }
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          })
-        },
-        (error) => {
-          reject(error)
-        },
-        { timeout: 10000 } 
-      )
-    })
+      return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported'))
+          return
+        }
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            })
+          },
+          (error) => {
+            reject(error)
+          },
+          { timeout: 10000 }
+        )
+      })
+    }
+
+    const getDistanceMeter = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ) => {
+    const toRad = (value: number) => (value * Math.PI) / 180
+    const R = 6371000 
+    const dLat = toRad(lat2 - lat1)
+    const dLon = toRad(lon2 - lon1)
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
   }
-  
+
   const openAttendanceModal = async (type: 'masuk' | 'pulang') => {
+    if (!user) return
+
     setModalType(type)
-    setAttendanceTime(new Date().toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }))
+    setAttendanceTime(
+      new Date().toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    )
 
     try {
       const coords = await requestLocation()
       setGeoCoords(coords)
-      setAttendanceLocation(`Lat: ${coords.latitude.toFixed(5)}, Lon: ${coords.longitude.toFixed(5)}`)
+
+      //lokasi dan radius untuk validasi
+      let baseLocation: {
+        latitude: number
+        longitude: number
+        radiusMeter: number
+        name: string
+      }
+
+      if (izinLokasi) {
+        baseLocation = {
+          latitude: izinLokasi.latitude,
+          longitude: izinLokasi.longitude,
+          radiusMeter: izinLokasi.radius,
+          name: izinLokasi.name,
+        }
+      } else if (kantor) {
+        baseLocation = {
+          latitude: kantor.latitude,
+          longitude: kantor.longitude,
+          radiusMeter: kantor.radiusMeter,
+          name: kantor.nama,
+        }
+      } else {
+        setAttendanceLocation(null)
+        alert('Data lokasi kantor dan izin lokasi tidak tersedia')
+        return setIsModalOpen(false)
+      }
+
+      //jarak user ke baseLocation
+      const jarak = getDistanceMeter(
+        coords.latitude,
+        coords.longitude,
+        baseLocation.latitude,
+        baseLocation.longitude
+      )
+
+      if (jarak <= baseLocation.radiusMeter) {
+        setAttendanceLocation(
+          `${baseLocation.name} (jarak ${Math.round(jarak)} m)`
+        )
+        setIsModalOpen(true)
+      } else {
+        alert(
+          `Anda berada di luar radius presensi di lokasi ${baseLocation.name}. Jarak Anda: ${Math.round(
+            jarak
+          )} meter.`
+        )
+        setIsModalOpen(false)
+      }
     } catch (error) {
-          setGeoCoords(null)
+      setGeoCoords(null)
       setAttendanceLocation(null)
       console.warn('Failed to get location:', error)
+      alert('Gagal mendapatkan lokasi, coba ulangi atau cek izin lokasi browser Anda.')
+      setIsModalOpen(false)
     }
-
-    setIsModalOpen(true)
   }
 
   const handleSubmitAttendance = async () => {
