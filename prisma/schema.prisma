@@ -65,7 +65,7 @@ model Attendance {
   user         User     @relation(fields: [userId], references: [customId])
   userId       String
 
-  date         String
+  date         DateTime
   clockIn      String
   clockOut     String?
   status       AttendanceStatus
@@ -176,5 +176,5 @@ enum UserStatus {
 enum AttendanceStatus {
   TEPAT_WAKTU
   TERLAMBAT
-  PULANG_CEPAT
+  TIDAK_HADIR
 }
