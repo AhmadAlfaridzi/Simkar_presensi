@@ -162,7 +162,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
    <div className="max-w-full px-4 sm:px-6 lg:px-8 mx-auto space-y-5 border-white/10 min-h-screen">
        {!isMobile && <PageHeader />}
         {/* Statistik */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2 w-full overflow-hidden">
             <StatBox title="Total Karyawan" value={dashboardStats.totalKaryawan} color="blue" Icon={Users} />
             <StatBox title="Tepat Waktu" value={dashboardStats.tepatWaktu} color="green" Icon={CheckCircle2} />
             <StatBox title="Terlambat" value={dashboardStats.terlambat} color="yellow" Icon={Clock} />
@@ -170,7 +170,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
         </div>
         
         {/* Grafik Kehadiran */}
-      <div className="bg-[#1a1a1a] p-4 sm:p-6 rounded-lg shadow mt-6">
+      <div className="bg-[#1a1a1a] p-4 sm:p-6 rounded-lg shadow mt-6 w-full overflow-hidden">
         <h2 className="text-lg sm:text-xl font-bold mb-4">Grafik Kehadiran Karyawan</h2>
         <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -190,7 +190,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
 
         {/* Tabel Absensi Hari Ini */}
         
-        <div className="bg-[#1a1a1a] p-4 rounded-lg shadow">
+        <div className="bg-[#1a1a1a] p-4 rounded-lg shadow w-full overflow-hidden">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Absensi Hari Ini</h2>
                 <div className="flex gap-2">
