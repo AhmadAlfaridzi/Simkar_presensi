@@ -29,7 +29,7 @@ export function AttendanceDetailModal({ record, onOpenChange }: AttendanceDetail
         <DialogContent className="max-w-4xl bg-[#1a1a1a] border-[#2e2e2e] text-gray-200">
           <DialogHeader>
             <DialogTitle className="text-xl text-white">
-              Detail Absensi - {record.employee.name}
+              Detail Absensi - {record.karyawan?.name}
             </DialogTitle>
           </DialogHeader>
 
@@ -48,8 +48,8 @@ export function AttendanceDetailModal({ record, onOpenChange }: AttendanceDetail
                       {attendanceStatusLabel[record.status as AttendanceStatus]}
                     </span>
                   </p>
-                  <p><span className="text-gray-400">Departemen:</span> {record.employee.department}</p>
-                  <p><span className="text-gray-400">Jabatan:</span> {record.employee.position}</p>
+                  <p><span className="text-gray-400">Departemen:</span> {record.karyawan?.department}</p>
+                  <p><span className="text-gray-400">Jabatan:</span> {record.karyawan?.position}</p>
                 </div>
               </div>
             </div>
@@ -66,7 +66,7 @@ export function AttendanceDetailModal({ record, onOpenChange }: AttendanceDetail
                         onClick={() => setPhotoModal({
                           open: true,
                           url: record.photoIn as string,
-                          title: `Foto Masuk - ${record.employee.name}`
+                          title: `Foto Masuk - ${record.karyawan?.name}`
                         })}
                       >
                         <div className="relative w-full h-full">
@@ -96,7 +96,7 @@ export function AttendanceDetailModal({ record, onOpenChange }: AttendanceDetail
                         onClick={() => setPhotoModal({
                         open: true,
                         url: record.photoOut as string,
-                        title: `Foto Pulang - ${record.employee.name}`
+                        title: `Foto Pulang - ${record.karyawan?.name}`
                         })}
                     >
                         <div className="relative w-full h-full">
