@@ -3,6 +3,7 @@ import { prisma } from '../src/lib/prisma'
 async function main() {
   await prisma.kantor.create({
     data: {
+      kodeKantor: 'KTR-001',
       nama: 'Apotek Aishy',
       alamat: 'Jl. Banda Aceh - Medan No.07, Mns Mee, Kec. Muara Dua, Kota Lhokseumawe, Aceh 24355',
       latitude: 5.166254982245708, 
