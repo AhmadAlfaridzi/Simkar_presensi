@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_super_aman'
 
 export async function POST(request: Request) {
   try {
@@ -12,10 +15,24 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findUnique({
       where: { username: username.trim() },
-      include: {
-        karyawan: true, 
-      },
-    })
+      select: {
+        customId: true,
+        username: true,
+        email: true,
+        role: true,
+        passwordHash: true, 
+        karyawan: {
+          select: {
+            customId: true,
+            name: true,
+            status: true,
+            position: true,
+            department: true,
+            image: true,
+          },
+        },
+  },
+})
 
     if (!user) {
       await bcrypt.compare(password, '$2a$10$fakehashforprotection')
@@ -27,13 +44,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username atau password salah' }, { status: 401 })
     }
 
-    // kamu bisa tambahkan validasi status akun dari data karyawan jika mau
     if (user.karyawan?.status !== 'AKTIF') {
       return NextResponse.json({ error: 'Akun tidak aktif. Hubungi admin.' }, { status: 403 })
     }
 
+    const token = jwt.sign(
+      {
+        id: user.customId,
+        username: user.username,
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    )
+
     return NextResponse.json({
       success: true,
+      token, 
       data: {
         id: user.customId,
         username: user.username,
@@ -44,8 +71,8 @@ export async function POST(request: Request) {
           position: user.karyawan?.position || '',
           department: user.karyawan?.department || '',
           image: user.karyawan?.image || '',
-        }
-      }
+        },
+      },
     })
   } catch (error) {
     console.error('🔴 LOGIN ERROR:', error)

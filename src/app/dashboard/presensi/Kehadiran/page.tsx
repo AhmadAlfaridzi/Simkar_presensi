@@ -47,17 +47,33 @@ export default function AbsenPage() {
   )
 
   useEffect(() => {
-    if (!user) return
+    const userId = user?.customId
+    console.log("🔍 userId:", userId)
+  if (!userId) return
 
-    async function fetchUserLocations() {
-      const kantorData: KantorType = await fetch(`/api/user/${user.customId}/kantor`).then(res => res.json())
-      const izinLokasiData: LokasiDinasType | null = await fetch(`/api/user/${user.customId}/izin-lokasi-terbaru`).then(res => res.json()).catch(() => null)
+   async function fetchUserLocations() {
+    try {
+      console.log("📡 Fetching kantor & izin lokasi...")
+
+      const kantorRes = await fetch(`/api/user/${userId}/kantor`)
+      console.log("📡 kantor status:", kantorRes.status)
+      const kantorData = kantorRes.ok ? await kantorRes.json() : null
+      console.log("🏢 kantorData:", kantorData)
+
+      const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi-terbaru`)
+      console.log("📡 izinLokasi status:", izinLokasiRes.status)
+      const izinLokasiData = izinLokasiRes.ok ? await izinLokasiRes.json() : null
+      console.log("📍 izinLokasiData:", izinLokasiData)
 
       setKantor(kantorData)
       setIzinLokasi(izinLokasiData)
+    } catch (err) {
+      console.error("❌ Error fetch lokasi:", err)
     }
-    fetchUserLocations()
-  }, [user])
+  }
+
+  fetchUserLocations()
+}, [user?.customId])
   
 
 

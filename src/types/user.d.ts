@@ -35,6 +35,7 @@ export interface UserAccount {
   username: string;
   email: string;
   role: UserRole;
+  kantorId?: string 
   passwordHash: string;
   createdAt: string;
   updatedAt: string;

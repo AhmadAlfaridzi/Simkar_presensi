@@ -50,12 +50,14 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  kantorId     String?  @db.Uuid
+  kantor       Kantor?  @relation("KantorUsers", fields: [kantorId], references: [id])
+  
+  karyawan     Karyawan? @relation(fields: [customId], references: [customId])
+  
   attendances  Attendance[]
   barcodes     Barcode[]
   izinLokasi   AbsensiIzinLokasi[]
-  kantorId    String?    @db.Uuid
-  kantor      Kantor?    @relation("KantorUsers", fields: [kantorId], references: [id])
-  karyawan     Karyawan? @relation(fields: [customId], references: [customId])
 
   @@map("users")
 }
@@ -119,13 +121,15 @@ model SparePart {
 
 model LokasiDinas {
   id         String   @id @default(uuid()) @db.Uuid
+  kodeLokasi String   @unique
   name       String
-  latitude    Float
-  longitude   Float
+  latitude   Float
+  longitude  Float
   radius     Int      @default(100)
 
   izinList   AbsensiIzinLokasi[]
 }
+
 
 model AbsensiIzinLokasi {
   id          String       @id @default(uuid()) @db.Uuid
@@ -144,14 +148,15 @@ model AbsensiIzinLokasi {
 }
 
 model Kantor {
-  id          String   @id @default(uuid())  @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  kodeKantor  String   @unique               
   nama        String
   alamat      String?
   latitude    Float
   longitude   Float
-  radiusMeter Float     
-  users       User[]    @relation("KantorUsers")
-  izinLokasi  AbsensiIzinLokasi[]  
+  radiusMeter Float
+  users       User[]   @relation("KantorUsers")
+  izinLokasi  AbsensiIzinLokasi[]
 
   createdAt   DateTime @default(now())
 }
