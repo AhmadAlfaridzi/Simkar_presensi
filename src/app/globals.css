@@ -71,7 +71,14 @@
   }
 }
 
-
+@media (max-resolution: 380dpi) {
+  .container {
+    padding-left: 1rem; 
+    padding-right: 1rem;
+    max-width: 100vw; 
+    overflow-x: hidden;
+  }
+}
 
 @layer base {
   * {
