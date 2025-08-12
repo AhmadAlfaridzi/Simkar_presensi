@@ -41,6 +41,19 @@ export const dummyAccounts: UserAccount[] = [
     resetPasswordToken: undefined,
     resetPasswordExpires: undefined
   },
+    {
+    id: '',
+    customId: 'USR-004',
+    username: 'ikhlas_ceo',
+    email: 'ikhlas_ceo@gmail.com',
+    role: 'DIREKTUR',
+    passwordHash: '$2a$10$' + Math.random().toString(36).substring(2, 12),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    karyawan: dummyPegawai.find(p => p.customId === 'USR-004'),
+    resetPasswordToken: undefined,
+    resetPasswordExpires: undefined
+  },
   {
     id: '',
     customId: 'USR-005',
@@ -95,6 +108,19 @@ export const dummyAccounts: UserAccount[] = [
   },
   {
     id: '',
+    customId: 'USR-009',
+    username: 'afdal_perpajakan',
+    email: 'afdal_perpajakan@gmail.com',
+    role: 'KEUANGAN',
+    passwordHash: '$2a$10$' + Math.random().toString(36).substring(2, 12),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    karyawan: dummyPegawai.find(p => p.customId === 'USR-009'),
+    resetPasswordToken: undefined,
+    resetPasswordExpires: undefined
+  },
+  {
+    id: '',
     customId: 'USR-010',
     username: 'reza_admin',
     email: 'reza_admin@gmail.com',
@@ -116,6 +142,19 @@ export const dummyAccounts: UserAccount[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-011'),
+    resetPasswordToken: undefined,
+    resetPasswordExpires: undefined
+  },
+    {
+    id: '',
+    customId: 'USR-012',
+    username: 'riska_kasir',
+    email: 'riska_kasir@gmail.com',
+    role: 'KARYAWAN',
+    passwordHash: '$2a$10$' + Math.random().toString(36).substring(2, 12),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    karyawan: dummyPegawai.find(p => p.customId === 'USR-012'),
     resetPasswordToken: undefined,
     resetPasswordExpires: undefined
   },
