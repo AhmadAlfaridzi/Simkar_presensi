@@ -45,19 +45,6 @@ model User {
   role         Role
   status         UserStatus       @default(AKTIF)
   passwordHash String
-<<<<<<< HEAD
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  kantorId     String?  @db.Uuid
-  kantor       Kantor?  @relation("KantorUsers", fields: [kantorId], references: [id])
-  
-  karyawan     Karyawan? @relation(fields: [customId], references: [customId])
-  
-  attendances  Attendance[]
-  barcodes     Barcode[]
-  izinLokasi   AbsensiIzinLokasi[]
-=======
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   kantorId     String?             @db.Uuid
@@ -68,7 +55,6 @@ model User {
   kantor       Kantor?             @relation("KantorUsers", fields: [kantorId], references: [id])
 
   kantorTetap  Boolean     @default(false)
->>>>>>> presensi
 
   @@map("users")
 }
@@ -76,12 +62,8 @@ model User {
 model Attendance {
   id_at        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId       String
-<<<<<<< HEAD
-
-=======
   kantorId     String?          @db.Uuid
   lokasiId     String?          @db.Uuid
->>>>>>> presensi
   date         DateTime
   clockIn      String
   clockOut     String?
@@ -137,16 +119,6 @@ model SparePart {
 }
 
 model LokasiDinas {
-<<<<<<< HEAD
-  id         String   @id @default(uuid()) @db.Uuid
-  kodeLokasi String   @unique
-  name       String
-  latitude   Float
-  longitude  Float
-  radius     Int      @default(100)
-
-  izinList   AbsensiIzinLokasi[]
-=======
   id        String              @id @default(uuid()) @db.Uuid
   name      String
   latitude  Float
@@ -154,7 +126,6 @@ model LokasiDinas {
   radius    Int                 @default(100)
   izinList  AbsensiIzinLokasi[]
   attendances  Attendance[]
->>>>>>> presensi
 }
 
 
@@ -172,29 +143,18 @@ model AbsensiIzinLokasi {
 }
 
 model Kantor {
-<<<<<<< HEAD
-  id          String   @id @default(uuid()) @db.Uuid
-  kodeKantor  String   @unique               
-=======
+
   id          String              @id @default(uuid()) @db.Uuid
   kodeKantor  String              @unique
->>>>>>> presensi
   nama        String
   alamat      String?
   latitude    Float
   longitude   Float
   radiusMeter Float
-<<<<<<< HEAD
-  users       User[]   @relation("KantorUsers")
-  izinLokasi  AbsensiIzinLokasi[]
-
-  createdAt   DateTime @default(now())
-=======
   createdAt   DateTime            @default(now())
   izinLokasi  AbsensiIzinLokasi[]
   attendances  Attendance[]
   users       User[]              @relation("KantorUsers")
->>>>>>> presensi
 }
 
 enum Role {
