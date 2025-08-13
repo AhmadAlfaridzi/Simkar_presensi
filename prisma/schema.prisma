@@ -143,7 +143,6 @@ model AbsensiIzinLokasi {
 }
 
 model Kantor {
-
   id          String              @id @default(uuid()) @db.Uuid
   kodeKantor  String              @unique
   nama        String
