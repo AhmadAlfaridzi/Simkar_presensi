@@ -45,7 +45,11 @@ export const SidebarNav = ({
           initial={{ x: -300 }}
           animate={{ x: 0 }}
           transition={{ type: 'spring', stiffness: 100 }}
+<<<<<<< HEAD
           className="w-64 h-full bg-[#0d0d0d] border-r border-[#333] flex flex-col"
+=======
+          className="w-64  h-full bg-[#0d0d0d] border-r border-[#333] flex flex-col"
+>>>>>>> presensi
         >
           <div className="p-4 border-b border-[#333]">
             <h2 className="text-lg font-bold text-white">{roleToTitleCase[user.role] || user.role} Dashboard</h2>

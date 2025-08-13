@@ -8,6 +8,11 @@ export interface AttendanceRecord {
   clockOut?: string | null;
   status: AttendanceStatus;
 
+<<<<<<< HEAD
+=======
+  kantorId?: string | null; 
+  lokasiId?: string | null;
+>>>>>>> presensi
   photoIn?: string | null;
   photoOut?: string | null;
   latitude?: number | null;
