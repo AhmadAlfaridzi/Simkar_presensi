@@ -1,21 +1,8 @@
-import { supabase } from '@/lib/supabase'
+import {prisma }  from '@/lib/prisma'
+import { dummyAttendance } from '@/data/attendence'
+import { AttendanceStatus } from '@prisma/client'
 
 export const attendanceService = {
-<<<<<<< HEAD
-  async getUserAttendances(userId: string) {
-    const { data, error } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('userId', userId)
-      .order('date', { ascending: false })
-
-    if (error) {
-      console.error('Failed to fetch user attendances:', error)
-      throw error
-    }
-
-    return data
-=======
   async seedDummyAttendances() {
     try {
       console.log('Starting attendance seeding...')
@@ -63,6 +50,5 @@ export const attendanceService = {
       case 'Pulang Cepat': return AttendanceStatus.TIDAK_HADIR
       default: return AttendanceStatus.TEPAT_WAKTU
     }
->>>>>>> presensi
   }
 }
