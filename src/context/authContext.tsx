@@ -31,6 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
+          // Pastikan customId juga ada
+          if (!parsedUser.customId && parsedUser.id) {
+            parsedUser.customId = parsedUser.id;
+          }
           setUser(parsedUser);
         }
       } catch (error) {
@@ -56,9 +60,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!response.ok) throw new Error('Login failed');
 
       const result = await response.json();
+
       if (result.success && result.data) {
-        setUser(result.data);
-        localStorage.setItem('user', JSON.stringify(result.data));
+        // Tambahkan customId agar konsisten
+        const userData = {
+          ...result.data,
+          customId: result.data.id,
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
       } else {
         throw new Error('Invalid response format');
       }
@@ -77,7 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated: !!user, login, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

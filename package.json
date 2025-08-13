@@ -36,6 +36,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.11",
     "html5-qrcode": "^2.3.8",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.534.0",
     "next": "^14.2.30",
     "pg": "^8.16.3",
@@ -49,6 +50,7 @@
     "zod": "^4.0.13"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.9",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
