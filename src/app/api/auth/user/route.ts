@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
+import type { JwtPayload } from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_super_aman'
 
@@ -13,15 +15,19 @@ export async function GET(req: Request) {
 
     const token = authHeader.split(' ')[1]
 
-    let decoded: any
+    let decoded: JwtPayload | string;
     try {
-      decoded = jwt.verify(token, JWT_SECRET)
-    } catch (err) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    if (typeof decoded !== 'object' || decoded === null || !('id' in decoded)) {
+      return NextResponse.json({ error: 'Invalid token payload' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { customId: decoded.id },
+      where: { customId: (decoded as JwtPayload & { id: string }).id },
       select: {
         customId: true,
         username: true,
@@ -36,7 +42,7 @@ export async function GET(req: Request) {
           },
         },
       },
-    })
+    });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -54,8 +60,8 @@ export async function GET(req: Request) {
         image: user.karyawan?.image || '',
       },
     })
-  } catch (error) {
-    console.error('🔴 USER ROUTE ERROR:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-  }
+  } catch (error: unknown) {
+  console.error('🔴 USER ROUTE ERROR:', error)
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+}
 }

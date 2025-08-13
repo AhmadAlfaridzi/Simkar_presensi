@@ -9,62 +9,61 @@ datasource db {
 }
 
 model Karyawan {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customId         String   @unique
-  name             String
-  nip              String?  @unique
-  nik              String?  @unique
-  npwp             String?  @unique
-
-  emailPribadi     String?
-  phone            String?
-  address          String?
-  birthDate        String?
-  tempatLahir      String?
-  jenisKelamin     String?
-  agama            String?
-
-  joinDate         String
-  position         String
-  department       String
-  pendidikan       String?
-  golongan         String?
-
-  image            String?
-  kontakDarurat    String?
-  hubunganDarurat  String?
-  status           UserStatus
-  lastLogin        DateTime?
-  user             User?   
+  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customId        String     @unique
+  name            String
+  nip             String?    @unique
+  nik             String?    @unique
+  npwp            String?    @unique
+  emailPribadi    String?
+  phone           String?
+  address         String?
+  birthDate       String?
+  tempatLahir     String?
+  jenisKelamin    String?
+  agama           String?
+  joinDate        String
+  position        String
+  department      String
+  pendidikan      String?
+  golongan        String?
+  image           String?
+  kontakDarurat   String?
+  hubunganDarurat String?
+  status          UserStatus
+  lastLogin       DateTime?
+  user            User?
 
   @@map("karyawan")
 }
 
 model User {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customId     String   @unique
-  username     String   @unique
-  email        String   @unique
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customId     String              @unique
+  username     String              @unique
+  email        String              @unique
   role         Role
+  status         UserStatus       @default(AKTIF)
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  kantorId     String?             @db.Uuid
+  izinLokasi   AbsensiIzinLokasi[]
   attendances  Attendance[]
   barcodes     Barcode[]
-  izinLokasi   AbsensiIzinLokasi[]
-  kantorId    String?    @db.Uuid
-  kantor      Kantor?    @relation("KantorUsers", fields: [kantorId], references: [id])
-  karyawan     Karyawan? @relation(fields: [customId], references: [customId])
+  karyawan     Karyawan            @relation(fields: [customId], references: [customId])
+  kantor       Kantor?             @relation("KantorUsers", fields: [kantorId], references: [id])
+
+  kantorTetap  Boolean     @default(false)
 
   @@map("users")
 }
 
 model Attendance {
-  id_at        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user         User     @relation(fields: [userId], references: [customId])
+  id_at        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId       String
-
+  kantorId     String?          @db.Uuid
+  lokasiId     String?          @db.Uuid
   date         DateTime
   clockIn      String
   clockOut     String?
@@ -78,7 +77,10 @@ model Attendance {
   barcodeOut   String?
   barcodeInAt  DateTime?
   barcodeOutAt DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime         @default(now())
+  user         User             @relation(fields: [userId], references: [customId])
+  kantor       Kantor?          @relation(fields: [kantorId], references: [id])
+  lokasiDinas  LokasiDinas?     @relation(fields: [lokasiId], references: [id])
 }
 
 model Barcode {
@@ -86,7 +88,6 @@ model Barcode {
   code      String   @unique
   userId    String
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [customId])
 }
 
@@ -118,43 +119,40 @@ model SparePart {
 }
 
 model LokasiDinas {
-  id         String   @id @default(uuid()) @db.Uuid
-  name       String
-  latitude    Float
-  longitude   Float
-  radius     Int      @default(100)
-
-  izinList   AbsensiIzinLokasi[]
+  id        String              @id @default(uuid()) @db.Uuid
+  name      String
+  latitude  Float
+  longitude Float
+  radius    Int                 @default(100)
+  izinList  AbsensiIzinLokasi[]
+  attendances  Attendance[]
 }
 
 model AbsensiIzinLokasi {
-  id          String       @id @default(uuid()) @db.Uuid
-  user        User         @relation(fields: [userId], references: [customId])
-  userId      String
-
-  lokasi      LokasiDinas  @relation(fields: [lokasiId], references: [id])
-  lokasiId    String       @db.Uuid
-
-  kantor      Kantor?      @relation(fields: [kantorId], references: [id])
-  kantorId    String?      @db.Uuid
-
-  tanggal     DateTime
-  keperluan   String?
-  createdAt   DateTime     @default(now())
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String
+  lokasiId  String      @db.Uuid
+  kantorId  String?     @db.Uuid
+  tanggal   DateTime
+  keperluan String?
+  createdAt DateTime    @default(now())
+  kantor    Kantor?     @relation(fields: [kantorId], references: [id])
+  lokasi    LokasiDinas @relation(fields: [lokasiId], references: [id])
+  user      User        @relation(fields: [userId], references: [customId])
 }
 
 model Kantor {
-  id          String   @id @default(uuid())  @db.Uuid
-  kodeKantor  String   @unique
+  id          String              @id @default(uuid()) @db.Uuid
+  kodeKantor  String              @unique
   nama        String
   alamat      String?
   latitude    Float
   longitude   Float
-  radiusMeter Float     
-  users       User[]    @relation("KantorUsers")
-  izinLokasi  AbsensiIzinLokasi[]  
-
-  createdAt   DateTime @default(now())
+  radiusMeter Float
+  createdAt   DateTime            @default(now())
+  izinLokasi  AbsensiIzinLokasi[]
+  attendances  Attendance[]
+  users       User[]              @relation("KantorUsers")
 }
 
 enum Role {

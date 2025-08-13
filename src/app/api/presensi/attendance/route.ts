@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       latitude,
       longitude,
       location,
+      lokasiId,
     } = data
 
     if (!userId || !date) {
@@ -27,17 +28,19 @@ export async function POST(request: Request) {
       )
     }
 
-    const attendanceDate = new Date(date)
+  const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
     const attendanceStatus: AttendanceStatus = convertStatus(status || '')
 
-    // Cek apakah data presensi hari ini sudah ada untuk user
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
-        userId,
-        date: new Date(date),
+      userId,
+      date: {
+        equals: attendanceDate
       },
-    })
+      ...(lokasiId ? { lokasiId } : {})
+    }
+  })
     
     function convertStatus(status: string): AttendanceStatus {
     switch(status.toLowerCase()) {

@@ -13,7 +13,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-001'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
   {
     id: '',
@@ -26,7 +27,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-002'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
   {
     id: '',
@@ -39,7 +41,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-003'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
     {
     id: '',
@@ -52,7 +55,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-004'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
   {
     id: '',
@@ -65,7 +69,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-005'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
   {
     id: '',
@@ -78,7 +83,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-006'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
   {
     id: '',
@@ -91,7 +97,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-007'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d'
   },
   {
     id: '',
@@ -104,7 +111,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-008'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -117,7 +125,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-009'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -130,7 +139,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-010'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -143,7 +153,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-011'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
     {
     id: '',
@@ -156,7 +167,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-012'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -169,7 +181,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-013'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -182,7 +195,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-014'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -195,7 +209,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-015'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -208,7 +223,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-016'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -221,7 +237,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-017'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -234,7 +251,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-018'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -247,7 +265,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-019'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -260,7 +279,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-020'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -273,7 +293,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-021'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -286,7 +307,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-022'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -299,7 +321,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-023'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -312,7 +335,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-024'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -325,7 +349,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-025'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -338,7 +363,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-026'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -351,7 +377,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-027'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   },
   {
     id: '',
@@ -364,7 +391,8 @@ export const dummyAccounts: UserAccount[] = [
     updatedAt: new Date().toISOString(),
     karyawan: dummyPegawai.find(p => p.customId === 'USR-028'),
     resetPasswordToken: undefined,
-    resetPasswordExpires: undefined
+    resetPasswordExpires: undefined,
+    kantorId: 'c13df3b1-3bfb-4373-b36b-3ed7706c0f7d',
   }
 ];
 

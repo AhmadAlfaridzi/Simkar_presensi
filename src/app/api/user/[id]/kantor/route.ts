@@ -6,7 +6,7 @@ type Params = { params: { id: string } }
 export async function GET(req: Request, { params }: Params) {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { customId : params.id },
       select: {
         kantor: {
           select: {
@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: Params) {
             nama: true,
             latitude: true,
             longitude: true,
-            radius: true,
+            radiusMeter: true,
           },
         },
       },
@@ -25,7 +25,8 @@ export async function GET(req: Request, { params }: Params) {
     }
 
     return NextResponse.json(user.kantor)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('🔴 USER ROUTE ERROR:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
