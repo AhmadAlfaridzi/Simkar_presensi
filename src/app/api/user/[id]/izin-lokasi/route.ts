@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { startOfDay, endOfDay } from 'date-fns'
 
 export async function GET(
   req: Request,
@@ -15,14 +14,13 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
-
+    const now = new Date()
     const izinLokasi = await prisma.absensiIzinLokasi.findMany({
       where: {
         userId: user.id,
-        tanggal: {
-          gte: startOfDay(new Date()),
-          lte: endOfDay(new Date()),
-        },
+        tanggalMulai: { lte: now },
+        tanggalSelesai: { gte: now },
+     
       },
       include: {
         lokasi: true,

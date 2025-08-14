@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
 import UserInfo from '@/components/Presensi/userInfo'
-import type { KantorType, LokasiDinasType } from '@/types/location'
+import type { LokasiType } from '@/types/location'
+import { Console } from 'console'
 
 
 export default function AbsenPage() {
@@ -19,9 +20,9 @@ export default function AbsenPage() {
   const [attendanceLocation, setAttendanceLocation] = useState<string | null>(null)
 
   const [geoCoords, setGeoCoords] = useState<{latitude: number, longitude: number} | null>(null)
-  const [kantor, setKantor] = useState<KantorType | null>(null)
-  const [izinLokasi, setIzinLokasi] = useState<LokasiDinasType | null>(null)
-  const [selectedLokasiId, setSelectedLokasiId] = useState<string | null>(null) // <-- tambahan state lokasiId
+  const [lokasiList, setLokasiList] = useState<LokasiType[]>([])
+  const [selectedLokasiId, setSelectedLokasiId] = useState<string | null>(null)
+  const [loadingLokasi, setLoadingLokasi] = useState(true)
 
   const handlePhotoTaken = (photo: string, locationName: string | null) => {
     setAttendancePhoto(photo)
@@ -51,34 +52,27 @@ export default function AbsenPage() {
   useEffect(() => {
     const userId = user?.customId
     console.log("🔍 userId:", userId)
-  if (!userId) return
-
+    if (!userId) return
+  
    async function fetchUserLocations() {
-      setLoadingLokasi(true)
+    setLoadingLokasi(true)
     try {
-      const kantorRes = await fetch(`/api/user/${userId}/kantor`)
-      console.log("📡 kantor status:", kantorRes.status)
-      const kantorData = kantorRes.ok ? await kantorRes.json() : null
-      console.log("🏢 kantorData:", kantorData)
 
       const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
       console.log("📡 izinLokasi status:", izinLokasiRes.status)
-      const izinLokasiData = izinLokasiRes.ok ? await izinLokasiRes.json() : null
-      console.log("📍 izinLokasiData:", izinLokasiData)
+      const izimLokasidata = izinLokasiRes.ok ? await izinLokasiRes.json() : []
+      console.log("dta lokasi ", izimLokasidata)
+      setLokasiList(izimLokasidata.lokasi ?? [])
+      if (izimLokasidata.lokasi?.length === 1) setSelectedLokasiId(izimLokasidata.lokasi[0].id)
+            } catch (err) {
+              console.error('❌ Error fetch lokasi:', err)
+            } finally {
+              setLoadingLokasi(false)
+            }
+          }
 
-      setKantor(kantorData)
-      setIzinLokasi(izinLokasiData)
-    } catch (err) {
-      console.error("❌ Error fetch lokasi:", err)
-    } finally {
-      setLoadingLokasi(false)
-    }
-  }
-
-  fetchUserLocations()
-}, [user?.customId])
-  
-
+     fetchUserLocations()
+  }, [user?.customId])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -117,7 +111,7 @@ export default function AbsenPage() {
     lat1: number,
     lon1: number,
     lat2: number,
-    lon2: number
+    lon2: number,
   ) => {
     const toRad = (value: number) => (value * Math.PI) / 180
     const R = 6371000 
@@ -133,10 +127,13 @@ export default function AbsenPage() {
     return R * c
   }
 
-  const setLoadingLokasi = useState(true)[1]
-
   const openAttendanceModal = async (type: 'masuk' | 'pulang') => {
     if (!user) return
+
+    if (loadingLokasi) {
+      alert('Data lokasi masih dimuat, tunggu sebentar...')
+    return
+  }
 
     setModalType(type)
     setAttendanceTime(
@@ -146,142 +143,69 @@ export default function AbsenPage() {
       })
     )
 
-     setLoadingLokasi(true);
-
     try {
+      setLoadingLokasi(true)
       const coords = await requestLocation()
       setGeoCoords(coords)
 
-      //lokasi dan radius untuk validasi
-      const baseLocation = izinLokasi
-      ? {
-          latitude: izinLokasi.latitude,
-          longitude: izinLokasi.longitude,
-          radiusMeter: izinLokasi.radius,
-          name: izinLokasi.name,
-          id: izinLokasi.id,
-        }
-      : kantor
-      ? {
-          latitude: kantor.latitude,
-          longitude: kantor.longitude,
-          radiusMeter: kantor.radiusMeter,
-          name: kantor.nama,
-          id: kantor.id,
-        }
-      : null
-
-      if (!baseLocation) {
-        alert('Data lokasi tidak tersedia')
-        return setIsModalOpen(false)
-      }
-
-      if (!izinLokasi && kantor) {
-        setSelectedLokasiId(kantor.id)
-      }
-
-      if (
-      typeof baseLocation.latitude !== 'number' ||
-        typeof baseLocation.longitude !== 'number'
-      ) {
-        alert('Koordinat lokasi tidak valid');
-        return setIsModalOpen(false);
-      }
-      
-      //jarak user ke baseLocation
-      const jarak = getDistanceMeter(
-        coords.latitude,
-        coords.longitude,
-        baseLocation.latitude,
-        baseLocation.longitude
-      )
-
-      if (jarak <= baseLocation.radiusMeter) {
-        setAttendanceLocation(
-          `${baseLocation.name} (jarak ${Math.round(jarak)} m)`
-        )
+      const baseLocation = lokasiList.find(l => l.id === selectedLokasiId) || lokasiList[0]
+      console.log(coords.latitude, coords.longitude,)
+      const jarak = getDistanceMeter(coords.latitude, coords.longitude, baseLocation.latitude, baseLocation.longitude)
+      if (jarak <= (baseLocation.radiusMeter || baseLocation.radiusMeter)) {
+        setAttendanceLocation(`${baseLocation.nama } (jarak ${Math.round(jarak)} m)`)
         setIsModalOpen(true)
       } else {
-        alert(
-          `Anda berada di luar radius presensi di lokasi ${baseLocation.name}. Jarak Anda: ${Math.round(
-            jarak
-          )} meter.`
-        )
-        setIsModalOpen(false)
+        alert(`Anda berada di luar radius presensi di lokasi ${baseLocation.nama }. Jarak: ${Math.round(jarak)} m.`)
       }
-    } catch (error) {
-    setGeoCoords(null);
-    setAttendanceLocation(null);
-    console.warn('Failed to get location:', error);
-    alert(
-      'Gagal mendapatkan lokasi, coba ulangi atau cek izin lokasi browser Anda.'
-    );
-    setIsModalOpen(false);
-  } finally {
-    setLoadingLokasi(false);
-  }
-};
-  const handleSubmitAttendance = async () => {
-    if (!user) return;
-
-    try {
-      const isMasuk = modalType === 'masuk';
-
-      const attendancePayload = isMasuk
-        ? {
-            userId: user.customId,
-            date: new Date().toISOString(),
-            clockIn: attendanceTime,
-            clockOut: null,
-            status: 'TEPAT_WAKTU',
-            photoIn: attendancePhoto,
-            photoOut: null,
-            latitude: geoCoords?.latitude ?? null,
-            longitude: geoCoords?.longitude ?? null,
-            location: attendanceLocation,
-            lokasiId: selectedLokasiId,
-          }
-        : {
-            userId: user.customId,
-            date: new Date().toISOString(),
-            clockIn: null,
-            clockOut: attendanceTime,
-            status: 'TEPAT_WAKTU',
-            photoIn: null,
-            photoOut: attendancePhoto,
-            latitude: geoCoords?.latitude ?? null,
-            longitude: geoCoords?.longitude ?? null,
-            location: attendanceLocation,
-            lokasiId: selectedLokasiId,
-          };
-          const response = await fetch('/api/presensi/attendance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(attendancePayload),
-          });
-
-      if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to submit attendance');
-      }
-
-      const result = await response.json();
-      console.log('Attendance saved:', result);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Error submitting attendance:', error.message);
-      } else {
-        console.error('Unknown error:', error);
-      }
+    } catch (err) {
+      console.error('Gagal mendapatkan lokasi:', err)
+      alert('Gagal mendapatkan lokasi, cek izin browser atau ulangi.')
     } finally {
-      setIsModalOpen(false);
-      setAttendancePhoto(null);
-      setAttendanceLocation(null);
-      setGeoCoords(null);
-      setSelectedLokasiId(null);
+      setLoadingLokasi(false)
     }
-  };
+  }
 
+  const handleSubmitAttendance = async () => {
+    if (!user) return
+    try {
+      const isMasuk = modalType === 'masuk'
+      const payload = {
+        userId: user.customId,
+        date: new Date().toISOString(),
+        clockIn: isMasuk ? attendanceTime : null,
+        clockOut: isMasuk ? null : attendanceTime,
+        status: 'TEPAT_WAKTU',
+        photoIn: isMasuk ? attendancePhoto : null,
+        photoOut: isMasuk ? null : attendancePhoto,
+        latitude: geoCoords?.latitude ?? null,
+        longitude: geoCoords?.longitude ?? null,
+        location: attendanceLocation,
+        lokasiId: selectedLokasiId
+      }
+
+      const res = await fetch('/api/presensi/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Gagal submit presensi')
+      }
+
+      const result = await res.json()
+      console.log('Attendance saved:', result)
+    } catch (err) {
+      console.error('Error submitting attendance:', err)
+    } finally {
+      setIsModalOpen(false)
+      setAttendancePhoto(null)
+      setAttendanceLocation(null)
+      setGeoCoords(null)
+      setSelectedLokasiId(null)
+    }
+  }
 
   if (!user) {
     return (
