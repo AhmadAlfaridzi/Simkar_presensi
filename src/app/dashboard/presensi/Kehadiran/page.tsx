@@ -6,8 +6,6 @@ import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
 import UserInfo from '@/components/Presensi/userInfo'
 import type { LokasiType } from '@/types/location'
-import { Console } from 'console'
-
 
 export default function AbsenPage() {
   const { user } = useAuth()
