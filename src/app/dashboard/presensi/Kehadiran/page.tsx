@@ -21,11 +21,7 @@ export default function AbsenPage() {
   const [lokasiList, setLokasiList] = useState<LokasiType[]>([])
   const [selectedLokasiId, setSelectedLokasiId] = useState<string | null>(null)
   const [loadingLokasi, setLoadingLokasi] = useState(true)
-
-  const handlePhotoTaken = (photo: string, locationName: string | null) => {
-    setAttendancePhoto(photo)
-    setAttendanceLocation(locationName)
-  }
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
     //  const handleScanSuccess = (decodedText: string) => {
     //   console.log('QR Code scanned:', decodedText)
@@ -47,32 +43,9 @@ export default function AbsenPage() {
     })
   )
 
-  useEffect(() => {
-    const userId = user?.customId
-    console.log("🔍 userId:", userId)
-    if (!userId) return
-  
-   async function fetchUserLocations() {
-    setLoadingLokasi(true)
-    try {
+  const [todayAttendance, setTodayAttendance] = useState<{ clockIn: string | null, clockOut: string | null } | null>(null)
 
-      const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
-      console.log("📡 izinLokasi status:", izinLokasiRes.status)
-      const izimLokasidata = izinLokasiRes.ok ? await izinLokasiRes.json() : []
-      console.log("dta lokasi ", izimLokasidata)
-      setLokasiList(izimLokasidata.lokasi ?? [])
-      if (izimLokasidata.lokasi?.length === 1) setSelectedLokasiId(izimLokasidata.lokasi[0].id)
-            } catch (err) {
-              console.error('❌ Error fetch lokasi:', err)
-            } finally {
-              setLoadingLokasi(false)
-            }
-          }
-
-     fetchUserLocations()
-  }, [user?.customId])
-
-  useEffect(() => {
+    useEffect(() => {
     const timer = setInterval(() => {
       setRealTime(new Date().toLocaleTimeString('id-ID', { 
         hour: '2-digit', 
@@ -84,23 +57,55 @@ export default function AbsenPage() {
     return () => clearInterval(timer)
   }, [])
 
-  const requestLocation = () => {
+  useEffect(() => {
+    const userId = user?.customId
+    console.log("🔍 userId:", userId)
+    if (!userId) return
+  
+   async function fetchUserLocations() {
+    setLoadingLokasi(true)
+    try {
+
+      const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
+      // console.log("📡 izinLokasi status:", izinLokasiRes.status)
+      const izimLokasidata = izinLokasiRes.ok ? await izinLokasiRes.json() : []
+      // console.log("data lokasi ", izimLokasidata)
+      setLokasiList(izimLokasidata.lokasi ?? [])
+      if (izimLokasidata.lokasi?.length === 1) setSelectedLokasiId(izimLokasidata.lokasi[0].id)
+            } catch (err) {
+              console.error('❌ Error fetch lokasi:', err)
+            } finally {
+              setLoadingLokasi(false)
+            }
+          }
+     fetchUserLocations()
+  }, [user?.customId])
+
+  const requestLocation = (minAccuracy = 3000) => {
       return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
         if (!navigator.geolocation) {
           reject(new Error('Geolocation not supported'))
           return
         }
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
+        const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const accuracy = position.coords.accuracy
+          if (accuracy <= minAccuracy) {
+            navigator.geolocation.clearWatch(watchId)
             resolve({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             })
-          },
+          }
+        },
           (error) => {
+            navigator.geolocation.clearWatch(watchId)
             reject(error)
           },
-          { timeout: 10000 }
+          { timeout: 15000,
+            enableHighAccuracy: true,
+            maximumAge: 0
+           }
         )
       })
     }
@@ -125,13 +130,14 @@ export default function AbsenPage() {
     return R * c
   }
 
+
+    const handlePhotoTaken = (photo: string, locationName: string | null) => {
+    setAttendancePhoto(photo)
+    setAttendanceLocation(locationName)
+  }
+
   const openAttendanceModal = async (type: 'masuk' | 'pulang') => {
     if (!user) return
-
-    if (loadingLokasi) {
-      alert('Data lokasi masih dimuat, tunggu sebentar...')
-    return
-  }
 
     setModalType(type)
     setAttendanceTime(
@@ -142,7 +148,6 @@ export default function AbsenPage() {
     )
 
     try {
-      setLoadingLokasi(true)
       const coords = await requestLocation()
       setGeoCoords(coords)
 
@@ -164,6 +169,9 @@ export default function AbsenPage() {
   }
 
   const handleSubmitAttendance = async () => {
+    if (isSubmitting) return   
+      setIsSubmitting(true)
+
     if (!user) return
     try {
       const isMasuk = modalType === 'masuk'

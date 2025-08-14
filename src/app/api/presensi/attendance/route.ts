@@ -28,21 +28,7 @@ export async function POST(request: Request) {
       )
     }
 
-  const attendanceDate = new Date(date)
-    attendanceDate.setHours(0, 0, 0, 0)
-    const attendanceStatus: AttendanceStatus = convertStatus(status || '')
-
-    const existingAttendance = await prisma.attendance.findFirst({
-      where: {
-      userId,
-      date: {
-        equals: attendanceDate
-      },
-      ...(lokasiId ? { lokasiId } : {})
-    }
-  })
-    
-    function convertStatus(status: string): AttendanceStatus {
+  function convertStatus(status: string): AttendanceStatus {
     switch(status.toLowerCase()) {
         case 'tepat waktu':
         case 'tepat_waktu':
@@ -57,9 +43,48 @@ export async function POST(request: Request) {
         default:
         return 'TEPAT_WAKTU'
     }
+  }
+
+  const attendanceDate = new Date(date)
+    attendanceDate.setHours(0, 0, 0, 0)
+    const attendanceStatus: AttendanceStatus = convertStatus(status || '')
+
+    let validLokasiId: string | null = null
+    if (lokasiId) {
+      const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId } })
+      if (!lokasi) {
+        return NextResponse.json(
+          { error: 'Lokasi presensi tidak valid' },
+          { status: 400 }
+        )
+      }
+      validLokasiId = lokasiId
     }
 
+    const existingAttendance = await prisma.attendance.findFirst({
+      where: {
+      userId,
+      date: {
+        equals: attendanceDate
+      },
+      ...(lokasiId ? { lokasiId } : {})
+    }
+  })
+
     if (existingAttendance) {
+      if (clockIn && existingAttendance.clockIn) {
+        return NextResponse.json(
+          { error: 'Anda sudah melakukan presensi masuk hari ini' },
+          { status: 400 }
+        )
+      }
+      if (clockOut && existingAttendance.clockOut) {
+        return NextResponse.json(
+          { error: 'Anda sudah melakukan presensi pulang hari ini' },
+          { status: 400 }
+        )
+      }
+
       // Update absen pulang (clockOut)
       const updated = await prisma.attendance.update({
         where: { id_at: existingAttendance.id_at },
@@ -81,15 +106,16 @@ export async function POST(request: Request) {
           id_at: crypto.randomUUID(),
           userId,
           date: attendanceDate,
-          clockIn: clockIn ?? '',
-          clockOut: null,
+          clockIn: clockIn ?? null,
+          clockOut: clockOut ?? null,
           status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
           photoIn: photoIn ?? null,
-          photoOut: null,
+          photoOut: photoOut ?? null,
           latitude: latitude ?? null,
           longitude: longitude ?? null,
           location: location ?? null,
           createdAt: new Date(),
+          lokasiId: validLokasiId,
         },
       })
       return NextResponse.json(created)
