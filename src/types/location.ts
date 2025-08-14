@@ -1,15 +1,8 @@
-export type KantorType = {
+export type LokasiType = {
   id: string
-  nama: string
+  nama: string      
   latitude: number
   longitude: number
-  radiusMeter: number
-}
-
-export type LokasiDinasType = {
-  id: string
-  name: string
-  latitude: number
-  longitude: number
-  radius: number
+  radiusMeter: number 
+  tipe: 'kantor_tetap' | 'izin_lokasi'
 }
