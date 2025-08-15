@@ -17,10 +17,9 @@ export default function AbsenPage() {
   const [attendancePhoto, setAttendancePhoto] = useState<string | null>(null)
   const [attendanceLocation, setAttendanceLocation] = useState<string | null>(null)
 
-  const [geoCoords, setGeoCoords] = useState<{latitude: number, longitude: number} | null>(null)
+  const [geoCoords, setGeoCoords] = useState<{ latitude: number; longitude: number } | null>(null)
   const [lokasiList, setLokasiList] = useState<LokasiType[]>([])
   const [selectedLokasiId, setSelectedLokasiId] = useState<string | null>(null)
-  const [loadingLokasi, setLoadingLokasi] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
     //  const handleScanSuccess = (decodedText: string) => {
@@ -57,31 +56,32 @@ export default function AbsenPage() {
     return () => clearInterval(timer)
   }, [])
 
+
   useEffect(() => {
     const userId = user?.customId
     console.log("🔍 userId:", userId)
     if (!userId) return
   
-   async function fetchUserLocations() {
-    setLoadingLokasi(true)
-    try {
-
-      const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
-      // console.log("📡 izinLokasi status:", izinLokasiRes.status)
-      const izimLokasidata = izinLokasiRes.ok ? await izinLokasiRes.json() : []
-      // console.log("data lokasi ", izimLokasidata)
-      setLokasiList(izimLokasidata.lokasi ?? [])
-      if (izimLokasidata.lokasi?.length === 1) setSelectedLokasiId(izimLokasidata.lokasi[0].id)
-            } catch (err) {
-              console.error('❌ Error fetch lokasi:', err)
-            } finally {
-              setLoadingLokasi(false)
-            }
-          }
-     fetchUserLocations()
+    async function fetchUserLocations() {
+      
+      try {
+        const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
+        console.log("📡 izinLokasi status:", izinLokasiRes.status)
+        const izimLokasidata = izinLokasiRes.ok ? await izinLokasiRes.json() : []
+        console.log("data lokasi ", izimLokasidata)
+        setLokasiList(izimLokasidata.lokasi ?? [])
+        if (izimLokasidata.lokasi?.length === 1) setSelectedLokasiId(izimLokasidata.lokasi[0].id)
+        setTodayAttendance(izimLokasidata.todayAttendance ?? { clockIn: null, clockOut: null })
+      } catch (err) {
+        console.error('❌ Error fetch lokasi:', err)
+      } finally {
+        
+      }
+    }
+      fetchUserLocations()
   }, [user?.customId])
 
-  const requestLocation = (minAccuracy = 3000) => {
+  const requestLocation = (minAccuracy = 30) => {
       return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
         if (!navigator.geolocation) {
           reject(new Error('Geolocation not supported'))
@@ -164,7 +164,6 @@ export default function AbsenPage() {
       console.error('Gagal mendapatkan lokasi:', err)
       alert('Gagal mendapatkan lokasi, cek izin browser atau ulangi.')
     } finally {
-      setLoadingLokasi(false)
     }
   }
 
@@ -200,8 +199,6 @@ export default function AbsenPage() {
         throw new Error(errData.error || 'Gagal submit presensi')
       }
 
-      const result = await res.json()
-      console.log('Attendance saved:', result)
     } catch (err) {
       console.error('Error submitting attendance:', err)
     } finally {
@@ -236,16 +233,30 @@ export default function AbsenPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <AttendanceCard 
-          type="masuk" 
-          onClick={() => openAttendanceModal('masuk')} 
-          scheduleTime="08:00"
-        />
-        <AttendanceCard 
-          type="pulang" 
-          onClick={() => openAttendanceModal('pulang')} 
-          scheduleTime="17:00"
-        />
+        <div>
+          <AttendanceCard 
+            type="masuk" 
+            onClick={() => openAttendanceModal('masuk')} 
+            scheduleTime="08:00"
+            disabled={todayAttendance?.clockIn !== null}
+          />
+           {/* {todayAttendance?.clockIn !== null && (
+            <p className="text-sm text-gray-400 mt-1">Anda sudah absen masuk hari ini</p>
+          )} */}
+        </div>
+        <div>
+          <AttendanceCard 
+            type="pulang" 
+            onClick={() => openAttendanceModal('pulang')} 
+            scheduleTime="17:00"
+            disabled={todayAttendance?.clockIn === null || todayAttendance?.clockOut !== null}
+          />
+          {/* {todayAttendance?.clockIn === null ? (
+            <p className="text-sm text-gray-400 mt-1">Anda harus absen masuk dulu</p>
+          ) : todayAttendance?.clockOut !== null ? (
+            <p className="text-sm text-gray-400 mt-1">Anda sudah absen pulang</p>
+          ) : null} */}
+        </div>
       </div>
 
       <AttendanceModal

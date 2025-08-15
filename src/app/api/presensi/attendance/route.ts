@@ -71,28 +71,35 @@ export async function POST(request: Request) {
     }
   })
 
-    if (existingAttendance) {
-      if (clockIn && existingAttendance.clockIn) {
-        return NextResponse.json(
-          { error: 'Anda sudah melakukan presensi masuk hari ini' },
-          { status: 400 }
-        )
-      }
-      if (clockOut && existingAttendance.clockOut) {
-        return NextResponse.json(
-          { error: 'Anda sudah melakukan presensi pulang hari ini' },
-          { status: 400 }
-        )
+
+    const validateAttendance = () => {
+      if (clockIn) {
+        if (existingAttendance?.clockIn) throw new Error('Anda sudah melakukan presensi masuk hari ini')
+        if (existingAttendance && !existingAttendance.clockOut)
+          throw new Error('Anda belum melakukan presensi pulang sebelumnya')
       }
 
+      if (clockOut) {
+        if (!existingAttendance?.clockIn) throw new Error('Anda belum melakukan presensi masuk hari ini')
+        if (existingAttendance?.clockOut) throw new Error('Anda sudah melakukan presensi pulang hari ini')
+      }
+    }
+    
+    try {
+      validateAttendance()
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message }, { status: 400 })
+    }
+
       // Update absen pulang (clockOut)
+    if (existingAttendance) {
       const updated = await prisma.attendance.update({
         where: { id_at: existingAttendance.id_at },
         data: {
-          clockIn: existingAttendance.clockIn, 
+          clockIn: clockIn ?? existingAttendance.clockIn,
           clockOut: clockOut ?? existingAttendance.clockOut,
           status: attendanceStatus ?? existingAttendance.status,
-          photoIn: existingAttendance.photoIn,
+          photoIn: photoIn ?? existingAttendance.photoIn,
           photoOut: photoOut ?? existingAttendance.photoOut,
           latitude: latitude ?? existingAttendance.latitude,
           longitude: longitude ?? existingAttendance.longitude,
@@ -100,30 +107,27 @@ export async function POST(request: Request) {
         },
       })
       return NextResponse.json(updated)
-    } else { 
-      const created = await prisma.attendance.create({
-        data: {
-          id_at: crypto.randomUUID(),
-          userId,
-          date: attendanceDate,
-          clockIn: clockIn ?? null,
-          clockOut: clockOut ?? null,
-          status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
-          photoIn: photoIn ?? null,
-          photoOut: photoOut ?? null,
-          latitude: latitude ?? null,
-          longitude: longitude ?? null,
-          location: location ?? null,
-          createdAt: new Date(),
-          lokasiId: validLokasiId,
-        },
-      })
-      return NextResponse.json(created)
     }
+
+    const created = await prisma.attendance.create({
+      data: {
+        id_at: crypto.randomUUID(),
+        userId,
+        date: attendanceDate,
+        clockIn: clockIn ?? null,
+        clockOut: clockOut ?? null,
+        status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
+        photoIn: photoIn ?? null,
+        photoOut: photoOut ?? null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+        location: location ?? null,
+        createdAt: new Date(),
+        lokasiId: validLokasiId,
+      },
+    })
+    return NextResponse.json(created)
   } catch (error) {
-    return NextResponse.json(
-      { error: (error as Error).message || 'Internal Server Error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: (error as Error).message || 'Internal Server Error' }, { status: 500 })
   }
 }

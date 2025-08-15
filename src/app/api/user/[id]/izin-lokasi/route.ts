@@ -56,9 +56,23 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) 
+
+    const todayAttendance = await prisma.attendance.findFirst({
+      where: {
+        userId: user.id,
+        date: today
+      },
+    })
+
     return NextResponse.json({
       tipeLokasi: lokasiList.length > 1 ? 'multi_lokasi' : 'kantor_tetap',
-      lokasi: lokasiList,  
+      lokasi: lokasiList,
+      todayAttendance: {
+        clockIn: todayAttendance?.clockIn || null,
+        clockOut: todayAttendance?.clockOut || null
+      }
     })
   } catch (error) {
     console.error(error)
