@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { toDate } from 'date-fns-tz'
 
 export async function GET(
   req: Request,
@@ -75,25 +74,19 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const tz = 'Asia/Jakarta'
-    const startOfDayJakarta = new Date()
-    startOfDayJakarta.setHours(0, 0, 0, 0)
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0) 
+    const endOfDay = new Date()
+    endOfDay.setHours(23, 59, 59, 999) 
 
-    const endOfDayJakarta = new Date()
-    endOfDayJakarta.setHours(23, 59, 59, 999)
-
-
-    const startOfDayUtc = toDate(startOfDayJakarta, { timeZone: tz })
-    const endOfDayUtc = toDate(endOfDayJakarta, { timeZone: tz })
-
-    console.log("🕒 Start of Day UTC:", startOfDayUtc, " End of Day UTC:", endOfDayUtc)
+    console.log("🕒 Start of Day UTC:", startOfDay , " End of Day UTC:", startOfDay )
 
     const todayAttendance = await prisma.attendance.findMany({
       where: {
          userId: user.id,
         date: {
-          gte: startOfDayUtc,
-          lte: endOfDayUtc,
+          gte: startOfDay,
+          lte: endOfDay,
         },
       },
     })

@@ -44,8 +44,10 @@ export async function POST(request: Request) {
     }
   }
 
-    const attendanceDate = new Date(date)
+    const tzOffset = 7 * 60 
+    const attendanceDate = new Date(new Date(date).getTime() - tzOffset * 60 * 1000)
     attendanceDate.setHours(0, 0, 0, 0)
+
     const attendanceStatus: AttendanceStatus = convertStatus(status || '')
     const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })

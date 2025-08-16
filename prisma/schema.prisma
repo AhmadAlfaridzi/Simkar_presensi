@@ -124,7 +124,6 @@ model LokasiDinas {
   latitude  Float
   longitude Float
   radius    Int                 @default(100)
-  timeZone  String
   izinList  AbsensiIzinLokasi[]
   attendances  Attendance[]
 }
@@ -153,7 +152,6 @@ model Kantor {
   longitude   Float
   radiusMeter Float
   createdAt   DateTime            @default(now())
-  timeZone     String
   izinLokasi  AbsensiIzinLokasi[]
   attendances  Attendance[]
   users       User[]              @relation("KantorUsers")
