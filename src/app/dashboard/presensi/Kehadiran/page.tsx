@@ -50,7 +50,7 @@ const selectedAttendance = selectedLokasiId
   ? todayAttendance.find(a => a.lokasiId === selectedLokasiId)
   : undefined
 
-// Saat data belum ada: masuk enabled, pulang disabled
+
 const disableMasuk  = selectedAttendance ? selectedAttendance.clockIn !== null : false
 const disablePulang = selectedAttendance ? (selectedAttendance.clockIn === null || selectedAttendance.clockOut !== null) : true
 

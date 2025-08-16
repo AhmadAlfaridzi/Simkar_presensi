@@ -44,9 +44,10 @@ export async function POST(request: Request) {
     }
   }
 
-    const tzOffset = 7 * 60 
-    const attendanceDate = new Date(new Date(date).getTime() - tzOffset * 60 * 1000)
-    attendanceDate.setHours(0, 0, 0, 0)
+    const localDate = new Date(date)
+    localDate.setHours(localDate.getHours() + 7)
+    localDate.setMinutes(0, 0, 0) 
+    const attendanceDate = localDate
 
     const attendanceStatus: AttendanceStatus = convertStatus(status || '')
     const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     
 
     let validLokasiId: string | null = null
-    // let validKantorId: string | null = null;
+    let validKantorId: string | null = null;
     
     if (lokasiId) {
       const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId } })
@@ -62,8 +63,12 @@ export async function POST(request: Request) {
         where: { lokasiId, userId }
       }) 
      
-      if (lokasi || izinLokasi || lokasiId === user?.kantorId) {
+      if (lokasi || izinLokasi) {
         validLokasiId = lokasiId
+        validKantorId = null // karena ini lokasi dinas
+      } else if (lokasiId === user?.kantorId) {
+        validKantorId = lokasiId // ini kantor tetap
+        validLokasiId = null
       } else {
         return NextResponse.json({ error: 'Lokasi presensi tidak valid' }, { status: 400 })
       }
@@ -77,12 +82,14 @@ export async function POST(request: Request) {
         },
       })
 
-     if (izinLokasi?.lokasiId) {
-        validLokasiId = izinLokasi.lokasiId
-      } else {
-        validLokasiId = user?.kantorId || null
-      }
+    if (izinLokasi?.lokasiId) {
+      validLokasiId = izinLokasi.lokasiId
+      validKantorId = null
+    } else if (user?.kantorId) {
+      validKantorId = user.kantorId
+      validLokasiId = null
     }
+  }
 
 
     const existingAttendance = await prisma.attendance.findFirst({
@@ -91,7 +98,8 @@ export async function POST(request: Request) {
         date: {
           equals: attendanceDate
         },
-        ...(validLokasiId ? { lokasiId: validLokasiId } : {})
+        ...(validLokasiId ? { lokasiId: validLokasiId } : {}),
+        ...(validKantorId ? { kantorId: validKantorId } : {}),
       }
     })
 
@@ -147,6 +155,7 @@ export async function POST(request: Request) {
         longitude: longitude ?? null,
         location: location ?? null,
         createdAt: new Date(),
+        kantorId: validKantorId,
         lokasiId: validLokasiId,
       },
     })

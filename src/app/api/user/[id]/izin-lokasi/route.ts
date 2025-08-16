@@ -74,12 +74,13 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0) 
-    const endOfDay = new Date()
-    endOfDay.setHours(23, 59, 59, 999) 
+    const offset = 7 * 60 
+    const startOfDay = new Date(now.getTime() + offset * 60 * 1000)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(now.getTime() + offset * 60 * 1000)
+    endOfDay.setHours(23, 59, 59, 999)
 
-    console.log("🕒 Start of Day UTC:", startOfDay , " End of Day UTC:", startOfDay )
+    console.log("🕒 Start of Day UTC:", startOfDay , " End of Day UTC:", endOfDay)
 
     const todayAttendance = await prisma.attendance.findMany({
       where: {
@@ -92,8 +93,12 @@ export async function GET(
     })
 
     console.log("🗒 Raw todayAttendance (DB):", todayAttendance)
-    const attendanceByLocation = lokasiList.map((loc) => {
-      const att = todayAttendance.find((a) => a.lokasiId === loc.id)
+    const attendanceByLocation = lokasiList.map((loc) => { 
+      const att = todayAttendance.find((a) =>
+      loc.tipe === 'kantor_tetap'
+        ? a.lokasiId === loc.id || a.lokasiId === null
+        : a.lokasiId === loc.id
+      )
       return {
         ...loc,
         clockIn: att?.clockIn ?? null,

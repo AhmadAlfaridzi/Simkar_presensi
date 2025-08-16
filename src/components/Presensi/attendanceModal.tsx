@@ -214,11 +214,40 @@ export default function AttendanceModal({
 }
 
 
-  const switchCamera = () => {
-    if (isMobile && mode === 'selfie') {
-      setCameraFacingMode(prev => (prev === 'user' ? 'environment' : 'user'))
+  const switchCamera = useCallback(async () => {
+  if (!isMobile || mode !== 'selfie') return
+
+  try {
+    // Tentukan facing mode baru
+    const newFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user'
+    setCameraFacingMode(newFacingMode)
+
+    // Hentikan stream kamera saat ini
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream
+      stream.getTracks().forEach(track => track.stop())
+      videoRef.current.srcObject = null
     }
+
+    // Mulai ulang kamera dengan facing mode baru
+    const constraints = {
+      video: {
+        facingMode: newFacingMode,
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    }
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream
+      videoRef.current.style.transform =
+        newFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)'
+      videoRef.current.style.objectFit = 'cover'
+    }
+  } catch (err) {
+    console.error('Gagal switch kamera:', err)
   }
+}, [cameraFacingMode, isMobile, mode])
 
   const retakePhoto = () => {
     setPhoto(null)
