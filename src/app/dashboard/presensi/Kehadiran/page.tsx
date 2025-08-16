@@ -42,9 +42,19 @@ export default function AbsenPage() {
     })
   )
 
-  const [todayAttendance, setTodayAttendance] = useState<{ clockIn: string | null, clockOut: string | null } | null>(null)
+const [todayAttendance, setTodayAttendance] = useState<
+  { lokasiId: string; clockIn: string | null; clockOut: string | null }[]
+>([])
 
-    useEffect(() => {
+const selectedAttendance = selectedLokasiId
+  ? todayAttendance.find(a => a.lokasiId === selectedLokasiId)
+  : undefined
+
+// Saat data belum ada: masuk enabled, pulang disabled
+const disableMasuk  = selectedAttendance ? selectedAttendance.clockIn !== null : false
+const disablePulang = selectedAttendance ? (selectedAttendance.clockIn === null || selectedAttendance.clockOut !== null) : true
+
+useEffect(() => {
     const timer = setInterval(() => {
       setRealTime(new Date().toLocaleTimeString('id-ID', { 
         hour: '2-digit', 
@@ -57,44 +67,78 @@ export default function AbsenPage() {
   }, [])
 
 
-  useEffect(() => {
-    const userId = user?.customId
-    console.log("🔍 userId:", userId)
-    if (!userId) return
-  
-    async function fetchUserLocations() {
-      
-      try {
-        const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
-        console.log("📡 izinLokasi status:", izinLokasiRes.status)
-        const izimLokasidata = izinLokasiRes.ok ? await izinLokasiRes.json() : []
-        console.log("data lokasi ", izimLokasidata)
-        setLokasiList(izimLokasidata.lokasi ?? [])
-        if (izimLokasidata.lokasi?.length === 1) setSelectedLokasiId(izimLokasidata.lokasi[0].id)
-        setTodayAttendance(izimLokasidata.todayAttendance ?? { clockIn: null, clockOut: null })
-      } catch (err) {
-        console.error('❌ Error fetch lokasi:', err)
-      } finally {
-        
-      }
-    }
-      fetchUserLocations()
-  }, [user?.customId])
+ useEffect(() => {
+  const userId = user?.customId
+  // console.log("🔍 userId:", userId)
+  if (!userId) return
 
-  const requestLocation = (minAccuracy = 30) => {
-      return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation not supported'))
-          return
-        }
-        const watchId = navigator.geolocation.watchPosition(
+  async function fetchUserLocations() {
+    try {
+      const izinLokasiRes = await fetch(`/api/user/${userId}/izin-lokasi`)
+      // console.log("📡 izinLokasi status:", izinLokasiRes.status)
+
+      if (!izinLokasiRes.ok) {
+        console.warn("⚠️ Gagal fetch izin lokasi, status:", izinLokasiRes.status)
+        setLokasiList([])
+        setTodayAttendance([])
+        return
+      }
+
+      const izinLokasiData = await izinLokasiRes.json()
+      // console.log("📍 Data lokasi:", izinLokasiData)
+
+      const lokasiArray = Array.isArray(izinLokasiData.lokasi) ? izinLokasiData.lokasi : []
+      setLokasiList(lokasiArray)
+
+      const firstId = lokasiArray[0]?.id ?? null
+      setSelectedLokasiId(firstId)
+
+      const raw = izinLokasiData.todayAttendance
+      const mapped = Array.isArray(raw)
+        ? raw.map((r: any) => ({
+            lokasiId: r.lokasiId ?? firstId,
+            clockIn: r.clockIn ?? null,
+            clockOut: r.clockOut ?? null,
+          }))
+        : raw
+          ? [{
+              lokasiId: raw.lokasiId ?? firstId,
+              clockIn: raw.clockIn ?? null,
+              clockOut: raw.clockOut ?? null,
+            }]
+          : (firstId ? [{ lokasiId: firstId, clockIn: null, clockOut: null }] : [])
+
+      setTodayAttendance(mapped)
+    } catch (err) {
+      console.error('❌ Error fetch lokasi:', err)
+      setLokasiList([])
+      setSelectedLokasiId(null)
+      setTodayAttendance([])
+    }
+  }
+
+  fetchUserLocations()
+}, [user?.customId])
+
+  const requestLocation = (minAccuracy = 30, maxRetry = 3) => {
+     return new Promise<{ latitude: number; longitude: number; accuracy: number }>(async (resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation not supported'))
+      return
+    }
+
+    let attempts = 0
+       const getPosition = () => {
+      attempts++
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
-          const accuracy = position.coords.accuracy
-          if (accuracy <= minAccuracy) {
+          console.log(`📍 Dapat posisi ke-${attempts}: lat=${position.coords.latitude}, lon=${position.coords.longitude}, akurasi=${position.coords.accuracy} m`)
+          if (position.coords.accuracy <= minAccuracy || attempts >= maxRetry) {
             navigator.geolocation.clearWatch(watchId)
             resolve({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy
             })
           }
         },
@@ -106,10 +150,11 @@ export default function AbsenPage() {
             enableHighAccuracy: true,
             maximumAge: 0
            }
-        )
-      })
+      )
     }
-
+    getPosition()
+  })
+}
     const getDistanceMeter = (
     lat1: number,
     lon1: number,
@@ -137,6 +182,16 @@ export default function AbsenPage() {
   }
 
   const openAttendanceModal = async (type: 'masuk' | 'pulang') => {
+    const baseLocation =
+      (selectedLokasiId && lokasiList.find(l => l.id === selectedLokasiId)) ||
+      lokasiList[0]
+
+    if (!baseLocation) {
+      alert('Lokasi belum siap. Coba lagi setelah data lokasi termuat.')
+      return
+    }
+    
+    
     if (!user) return
 
     setModalType(type)
@@ -148,16 +203,21 @@ export default function AbsenPage() {
     )
 
     try {
+      // console.log("📍 Meminta lokasi dari browser... ")
       const coords = await requestLocation()
+      // console.log("✅ Lokasi diterima:", coords)
       setGeoCoords(coords)
 
       const baseLocation = lokasiList.find(l => l.id === selectedLokasiId) || lokasiList[0]
-      console.log(coords.latitude, coords.longitude,)
+      // console.log("🏢 Lokasi kantor:", baseLocation)
       const jarak = getDistanceMeter(coords.latitude, coords.longitude, baseLocation.latitude, baseLocation.longitude)
-      if (jarak <= (baseLocation.radiusMeter || baseLocation.radiusMeter)) {
+      if (jarak <= (baseLocation.radiusMeter )) {
         setAttendanceLocation(`${baseLocation.nama } (jarak ${Math.round(jarak)} m)`)
+        console.log(`📏 Jarak ke lokasi: ${jarak} meter, batas radius: ${baseLocation.radiusMeter} meter`)
         setIsModalOpen(true)
+        console.log("✅ Dalam radius, buka modal presensi.")
       } else {
+        //  console.warn(`❌ Di luar radius. Jarak: ${Math.round(jarak)} m`)
         alert(`Anda berada di luar radius presensi di lokasi ${baseLocation.nama }. Jarak: ${Math.round(jarak)} m.`)
       }
     } catch (err) {
@@ -188,6 +248,8 @@ export default function AbsenPage() {
         lokasiId: selectedLokasiId
       }
 
+      console.log('📝 Payload sebelum submit:', payload)
+
       const res = await fetch('/api/presensi/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -199,6 +261,29 @@ export default function AbsenPage() {
         throw new Error(errData.error || 'Gagal submit presensi')
       }
 
+      if (selectedLokasiId) {
+        setTodayAttendance(prev => {
+          const idx = prev.findIndex(a => a.lokasiId === selectedLokasiId)
+          if (idx === -1) {
+            return [
+              ...prev,
+              {
+                lokasiId: selectedLokasiId,
+                clockIn: isMasuk ? attendanceTime : null,
+                clockOut: isMasuk ? null : attendanceTime
+              }
+            ]
+          }
+          const copy = [...prev]
+          copy[idx] = {
+            ...copy[idx],
+            clockIn: isMasuk ? attendanceTime : copy[idx].clockIn,
+            clockOut: isMasuk ? copy[idx].clockOut : attendanceTime
+          }
+          return copy
+        })
+      }
+
     } catch (err) {
       console.error('Error submitting attendance:', err)
     } finally {
@@ -206,7 +291,7 @@ export default function AbsenPage() {
       setAttendancePhoto(null)
       setAttendanceLocation(null)
       setGeoCoords(null)
-      setSelectedLokasiId(null)
+      // setSelectedLokasiId(null)
     }
   }
 
@@ -238,7 +323,7 @@ export default function AbsenPage() {
             type="masuk" 
             onClick={() => openAttendanceModal('masuk')} 
             scheduleTime="08:00"
-            disabled={todayAttendance?.clockIn !== null}
+            disabled={disableMasuk}
           />
            {/* {todayAttendance?.clockIn !== null && (
             <p className="text-sm text-gray-400 mt-1">Anda sudah absen masuk hari ini</p>
@@ -249,7 +334,7 @@ export default function AbsenPage() {
             type="pulang" 
             onClick={() => openAttendanceModal('pulang')} 
             scheduleTime="17:00"
-            disabled={todayAttendance?.clockIn === null || todayAttendance?.clockOut !== null}
+             disabled={disablePulang}
           />
           {/* {todayAttendance?.clockIn === null ? (
             <p className="text-sm text-gray-400 mt-1">Anda harus absen masuk dulu</p>

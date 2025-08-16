@@ -14,13 +14,13 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+
     const now = new Date()
     const izinLokasi = await prisma.absensiIzinLokasi.findMany({
       where: {
         userId: user.id,
         tanggalMulai: { lte: now },
         tanggalSelesai: { gte: now },
-     
       },
       include: {
         lokasi: true,
@@ -28,51 +28,77 @@ export async function GET(
       },
     })
 
-    const lokasiList = []
+    const lokasiList: {
+      id: string
+      nama: string
+      latitude: number
+      longitude: number
+      radiusMeter: number
+      tipe: 'izin_lokasi' | 'kantor_tetap'
+    }[] = []
+
+    izinLokasi.forEach((izin) => {
+      if (izin.lokasi) {
+        lokasiList.push({
+          id: izin.lokasi.id ?? '',
+          nama: izin.lokasi.name ?? '',
+          latitude: izin.lokasi.latitude ?? 0,
+          longitude: izin.lokasi.longitude ?? 0,
+          radiusMeter: izin.lokasi.radius ?? 0,
+          tipe: 'izin_lokasi',
+        })
+      } else if (izin.kantor) {
+        lokasiList.push({
+          id: izin.kantor.id ?? '',
+          nama: izin.kantor.nama ?? '',
+          latitude: izin.kantor.latitude ?? 0,
+          longitude: izin.kantor.longitude ?? 0,
+          radiusMeter: izin.kantor.radiusMeter ?? 0,
+          tipe: 'izin_lokasi',
+        })
+      }
+    })
 
     if (user.kantor) {
       lokasiList.push({
-        id: user.kantor.id,
-        nama: user.kantor.nama,
-        latitude: user.kantor.latitude,
-        longitude: user.kantor.longitude,
-        radiusMeter: user.kantor.radiusMeter,
+        id: user.kantor.id ?? '',
+        nama: user.kantor.nama ?? '',
+        latitude: user.kantor.latitude ?? 0,
+        longitude: user.kantor.longitude ?? 0,
+        radiusMeter: user.kantor.radiusMeter ?? 0,
         tipe: 'kantor_tetap',
       })
     }
-
-    izinLokasi.forEach((izin) => {
-      lokasiList.push({
-        id: izin.lokasi?.id || izin.kantor?.id,
-        nama: izin.lokasi?.name || izin.kantor?.nama,
-        latitude: izin.lokasi?.latitude || izin.kantor?.latitude,
-        longitude: izin.lokasi?.longitude || izin.kantor?.longitude,
-        radiusMeter: izin.lokasi?.radius || izin.kantor?.radiusMeter,
-        tipe: 'izin_lokasi',
-      })
-    })
 
     if (lokasiList.length === 0) {
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
     const today = new Date()
-    today.setHours(0, 0, 0, 0) 
+    today.setHours(0, 0, 0, 0)
 
-    const todayAttendance = await prisma.attendance.findFirst({
+    // ambil semua presensi hari ini untuk user
+    const todayAttendance = await prisma.attendance.findMany({
       where: {
         userId: user.id,
-        date: today
+        date: today,
       },
+    })
+
+    // gabungkan tiap lokasi dengan presensi masing-masing
+    const attendanceByLocation = lokasiList.map((loc) => {
+      const att = todayAttendance.find((a) => a.lokasiId === loc.id)
+      return {
+        ...loc,
+        clockIn: att?.clockIn ?? null,
+        clockOut: att?.clockOut ?? null,
+        status: att?.status ?? null,
+      }
     })
 
     return NextResponse.json({
       tipeLokasi: lokasiList.length > 1 ? 'multi_lokasi' : 'kantor_tetap',
-      lokasi: lokasiList,
-      todayAttendance: {
-        clockIn: todayAttendance?.clockIn || null,
-        clockOut: todayAttendance?.clockOut || null
-      }
+      lokasi: attendanceByLocation,
     })
   } catch (error) {
     console.error(error)
