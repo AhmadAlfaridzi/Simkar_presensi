@@ -135,7 +135,8 @@ model AbsensiIzinLokasi {
   userId    String
   lokasiId  String      @db.Uuid
   kantorId  String?     @db.Uuid
-  tanggal   DateTime
+  tanggalMulai   DateTime
+  tanggalSelesai DateTime
   keperluan String?
   createdAt DateTime    @default(now())
   kantor    Kantor?     @relation(fields: [kantorId], references: [id])
