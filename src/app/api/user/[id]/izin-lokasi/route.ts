@@ -74,14 +74,20 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+
+    const endOfDay = new Date()
+    endOfDay.setHours(23, 59, 59, 999)
 
     // ambil semua presensi hari ini untuk user
     const todayAttendance = await prisma.attendance.findMany({
       where: {
-        userId: user.id,
-        date: today,
+         userId: user.id,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
       },
     })
 
