@@ -85,13 +85,16 @@ useEffect(() => {
       }
 
       const izinLokasiData = await izinLokasiRes.json()
-      // console.log("📍 Data lokasi:", izinLokasiData)
+      console.log("📡 API Response:", izinLokasiData)
+      console.log("📡 Raw todayAttendance dari API:", izinLokasiData.todayAttendance)
+
 
       const lokasiArray = Array.isArray(izinLokasiData.lokasi) ? izinLokasiData.lokasi : []
       setLokasiList(lokasiArray)
 
       const firstId = lokasiArray[0]?.id ?? null
       setSelectedLokasiId(firstId)
+      console.log("🎯 selectedLokasiId:", firstId)
 
       const raw = izinLokasiData.todayAttendance
       const mapped = Array.isArray(raw)
@@ -107,8 +110,8 @@ useEffect(() => {
               clockOut: raw.clockOut ?? null,
             }]
           : (firstId ? [{ lokasiId: firstId, clockIn: null, clockOut: null }] : [])
-
-      setTodayAttendance(mapped)
+          console.log("📌 Mapped todayAttendance:", mapped)
+          setTodayAttendance(mapped)
     } catch (err) {
       console.error('❌ Error fetch lokasi:', err)
       setLokasiList([])

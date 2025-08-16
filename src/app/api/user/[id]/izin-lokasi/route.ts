@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { toDate } from 'date-fns-tz'
 
 export async function GET(
   req: Request,
@@ -74,24 +75,30 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
+    const tz = 'Asia/Jakarta'
+    const startOfDayJakarta = new Date()
+    startOfDayJakarta.setHours(0, 0, 0, 0)
 
-    const endOfDay = new Date()
-    endOfDay.setHours(23, 59, 59, 999)
+    const endOfDayJakarta = new Date()
+    endOfDayJakarta.setHours(23, 59, 59, 999)
 
-    // ambil semua presensi hari ini untuk user
+
+    const startOfDayUtc = toDate(startOfDayJakarta, { timeZone: tz })
+    const endOfDayUtc = toDate(endOfDayJakarta, { timeZone: tz })
+
+    console.log("🕒 Start of Day UTC:", startOfDayUtc, " End of Day UTC:", endOfDayUtc)
+
     const todayAttendance = await prisma.attendance.findMany({
       where: {
          userId: user.id,
         date: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfDayUtc,
+          lte: endOfDayUtc,
         },
       },
     })
 
-    // gabungkan tiap lokasi dengan presensi masing-masing
+    console.log("🗒 Raw todayAttendance (DB):", todayAttendance)
     const attendanceByLocation = lokasiList.map((loc) => {
       const att = todayAttendance.find((a) => a.lokasiId === loc.id)
       return {
@@ -102,6 +109,8 @@ export async function GET(
       }
     })
 
+    console.log("📦 attendanceByLocation (hasil gabung):", attendanceByLocation)
+    
     return NextResponse.json({
       tipeLokasi: lokasiList.length > 1 ? 'multi_lokasi' : 'kantor_tetap',
       lokasi: attendanceByLocation,
