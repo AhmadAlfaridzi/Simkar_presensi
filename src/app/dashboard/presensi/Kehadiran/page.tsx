@@ -95,7 +95,7 @@ useEffect(() => {
 
       const raw = izinLokasiData.todayAttendance
       const mapped = Array.isArray(raw)
-        ? raw.map((r: any) => ({
+        ? raw.map((r: typeof raw[number]) => ({
             lokasiId: r.lokasiId ?? firstId,
             clockIn: r.clockIn ?? null,
             clockOut: r.clockOut ?? null,

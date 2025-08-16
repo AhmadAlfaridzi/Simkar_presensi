@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     
 
     let validLokasiId: string | null = null
-    let validKantorId: string | null = null;
+    // let validKantorId: string | null = null;
     
     if (lokasiId) {
       const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId } })
@@ -99,7 +99,6 @@ export async function POST(request: Request) {
       if (existingAttendance?.clockIn) 
         throw new Error('Anda sudah melakukan presensi masuk di lokasi ini hari ini')
     }
-
     if (clockOut) {
       if (!existingAttendance?.clockIn) 
         throw new Error('Anda belum melakukan presensi masuk hari ini')
