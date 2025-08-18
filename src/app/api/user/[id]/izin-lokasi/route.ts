@@ -16,14 +16,7 @@ export async function GET(
     }
 
     const now = nowWIB()
-    console.log("🕒 now (WIB):", now)
-
-    // ambil semua izinLokasi user ini tanpa filter
-    const allIzin = await prisma.absensiIzinLokasi.findMany({
-      where: { userId: user.customId },
-      include: { lokasi: true, kantor: true },
-    })
-    console.log("📋 Semua izinLokasi user:", allIzin)
+    // console.log("🕒 now (WIB):", now)
     
     const izinLokasi = await prisma.absensiIzinLokasi.findMany({
       where: {
@@ -91,11 +84,9 @@ export async function GET(
     const endOfDay = endOfDayWIB(now)
 
 
-    console.log("🕒 Start of Day UTC:", startOfDay , " End of Day UTC:", endOfDay)
-    console.log("🕒 now (WIB):", now)
     const todayAttendance = await prisma.attendance.findMany({
       where: {
-         userId: user.id,
+         userId: user.customId,
         date: {
           gte: startOfDay,
           lte: endOfDay,
@@ -119,10 +110,15 @@ export async function GET(
       }
     })
 
-    console.log("📦 attendanceByLocation (hasil gabung):", attendanceByLocation)
+    // console.log("📦 attendanceByLocation (hasil gabung):", attendanceByLocation)
     
     return NextResponse.json({
         lokasi: attendanceByLocation,
+        todayAttendance: attendanceByLocation.map(a => ({
+          lokasiId: a.tipe === 'kantor_tetap' ? a.id : a.id,
+          clockIn: a.clockIn,
+          clockOut: a.clockOut,
+        })),
         tipeLokasi: 
           lokasiList.every((l) => l.tipe === 'kantor_tetap')
             ? 'kantor_tetap'
@@ -130,7 +126,6 @@ export async function GET(
             ? 'izin_lokasi'
             : 'multi_lokasi',
       })
-
   } catch (error) {
     console.error(error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
-import { nowWIB } from '@/lib/timezone'
+import { nowWIB, } from '@/lib/timezone'
+import { console } from 'inspector'
 
 export async function POST(request: Request) {
   try {
@@ -92,17 +93,18 @@ export async function POST(request: Request) {
       validLokasiId = null
     }
   }
-
+    const today = attendanceDate.toISOString().split('T')[0]; 
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
         userId,
         date: {
-          equals: attendanceDate
+          gte: new Date(today + 'T00:00:00.000Z'),
+          lte: new Date(today + 'T23:59:59.999Z'),
         },
         ...(validLokasiId ? { lokasiId: validLokasiId } : {}),
         ...(validKantorId ? { kantorId: validKantorId } : {}),
-      }
-    })
+      },
+    });
 
 
     const validateAttendance = () => {

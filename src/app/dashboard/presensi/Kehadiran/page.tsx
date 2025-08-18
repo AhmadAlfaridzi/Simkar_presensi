@@ -86,7 +86,7 @@ useEffect(() => {
 
       const izinLokasiData = await izinLokasiRes.json()
       console.log("📡 API Response:", izinLokasiData)
-      console.log("📡 Raw todayAttendance dari API:", izinLokasiData.lokasi)
+      console.log("📡 Raw todayAttendance dari API:", izinLokasiData.todayAttendance)
 
 
       const lokasiArray = Array.isArray(izinLokasiData.lokasi) ? izinLokasiData.lokasi : []
@@ -99,17 +99,18 @@ useEffect(() => {
       const raw = izinLokasiData.todayAttendance
       const mapped = Array.isArray(raw)
         ? raw.map((r: typeof raw[number]) => ({
-            lokasiId: r.lokasiId ?? firstId,
+            lokasiId: r.lokasiId ?? r.kantorId ?? firstId, 
             clockIn: r.clockIn ?? null,
             clockOut: r.clockOut ?? null,
           }))
         : raw
           ? [{
-              lokasiId: raw.lokasiId ?? firstId,
+              lokasiId: raw.lokasiId ?? raw.kantorId ?? firstId,
               clockIn: raw.clockIn ?? null,
               clockOut: raw.clockOut ?? null,
             }]
           : (firstId ? [{ lokasiId: firstId, clockIn: null, clockOut: null }] : [])
+          
           console.log("📌 Mapped todayAttendance:", mapped)
           setTodayAttendance(mapped)
     } catch (err) {
@@ -123,41 +124,76 @@ useEffect(() => {
   fetchUserLocations()
 }, [user?.customId])
 
-  const requestLocation = (minAccuracy = 30, maxRetry = 3) => {
-     return new Promise<{ latitude: number; longitude: number; accuracy: number }>(async (resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation not supported'))
-      return
-    }
+useEffect(() => {
+    if (!user) return
+    requestLocation()
+      .then(coords => {
+        console.log("📍 Lokasi diterima saat page dibuka:", coords)
+        setGeoCoords(coords)
+        if (lokasiList.length > 0) {
+          let nearest = lokasiList[0]
+          let minDistance = getDistanceMeter(
+            coords.latitude,
+            coords.longitude,
+            nearest.latitude,
+            nearest.longitude
+          )
 
-    let attempts = 0
-       const getPosition = () => {
-      attempts++
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          console.log(`📍 Dapat posisi ke-${attempts}: lat=${position.coords.latitude}, lon=${position.coords.longitude}, akurasi=${position.coords.accuracy} m`)
-          if (position.coords.accuracy <= minAccuracy || attempts >= maxRetry) {
-            navigator.geolocation.clearWatch(watchId)
-            resolve({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              accuracy: position.coords.accuracy
-            })
-          }
-        },
+          lokasiList.forEach((loc) => {
+            const d = getDistanceMeter(
+              coords.latitude,
+              coords.longitude,
+              loc.latitude,
+              loc.longitude
+            )
+            if (d < minDistance) {
+              minDistance = d
+              nearest = loc
+            }
+          })
+
+          setSelectedLokasiId(nearest.id)
+          console.log("🎯 Selected lokasi terdekat otomatis:", nearest.nama)
+        }
+      })
+      .catch(err => {
+        console.error("❌ Gagal mendapatkan lokasi:", err)
+        alert("Gagal mendapatkan lokasi. Pastikan izin lokasi diizinkan di browser.")
+      })
+  }, [user])
+
+  const requestLocation = (minAccuracy = 30, maxRetry = 3) => {
+    return new Promise<{ latitude: number; longitude: number; accuracy: number }>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation not supported'))
+        return
+      }
+
+      let attempts = 0
+      const getPosition = () => {
+        attempts++
+        const watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            console.log(`📍 Dapat posisi ke-${attempts}: lat=${position.coords.latitude}, lon=${position.coords.longitude}, akurasi=${position.coords.accuracy} m`)
+            if (position.coords.accuracy <= minAccuracy || attempts >= maxRetry) {
+              navigator.geolocation.clearWatch(watchId)
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy
+              })
+            }
+          },
           (error) => {
             navigator.geolocation.clearWatch(watchId)
             reject(error)
           },
-          { timeout: 15000,
-            enableHighAccuracy: true,
-            maximumAge: 0
-           }
-      )
-    }
-    getPosition()
-  })
-}
+          { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
+        )
+      }
+      getPosition()
+    })
+  }
     const getDistanceMeter = (
     lat1: number,
     lon1: number,
