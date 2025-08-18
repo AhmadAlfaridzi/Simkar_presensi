@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { nowWIB, startOfDayWIB, endOfDayWIB } from '@/lib/timezone'
 
 export async function GET(
   req: Request,
@@ -10,15 +11,23 @@ export async function GET(
       where: { customId: params.id },
       include: { kantor: true },
     })
-
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const now = new Date()
+    const now = nowWIB()
+    console.log("🕒 now (WIB):", now)
+
+    // ambil semua izinLokasi user ini tanpa filter
+    const allIzin = await prisma.absensiIzinLokasi.findMany({
+      where: { userId: user.customId },
+      include: { lokasi: true, kantor: true },
+    })
+    console.log("📋 Semua izinLokasi user:", allIzin)
+    
     const izinLokasi = await prisma.absensiIzinLokasi.findMany({
       where: {
-        userId: user.id,
+        userId: user.customId,
         tanggalMulai: { lte: now },
         tanggalSelesai: { gte: now },
       },
@@ -27,7 +36,11 @@ export async function GET(
         kantor: true,
       },
     })
-
+    console.log("🎟 izinLokasi (filtered by date):", izinLokasi)
+    const rawIzin = await prisma.$queryRawUnsafe(`
+      SELECT * FROM "AbsensiIzinLokasi" WHERE "userId" = '${user.customId}'
+    `);
+    console.log("🛠 Raw query izin lokasi:", rawIzin);
     const lokasiList: {
       id: string
       nama: string
@@ -37,35 +50,35 @@ export async function GET(
       tipe: 'izin_lokasi' | 'kantor_tetap'
     }[] = []
 
-    izinLokasi.forEach((izin) => {
-      if (izin.lokasi) {
-        lokasiList.push({
-          id: izin.lokasi.id ?? '',
-          nama: izin.lokasi.name ?? '',
-          latitude: izin.lokasi.latitude ?? 0,
-          longitude: izin.lokasi.longitude ?? 0,
-          radiusMeter: izin.lokasi.radius ?? 0,
-          tipe: 'izin_lokasi',
-        })
-      } else if (izin.kantor) {
-        lokasiList.push({
-          id: izin.kantor.id ?? '',
-          nama: izin.kantor.nama ?? '',
-          latitude: izin.kantor.latitude ?? 0,
-          longitude: izin.kantor.longitude ?? 0,
-          radiusMeter: izin.kantor.radiusMeter ?? 0,
-          tipe: 'izin_lokasi',
-        })
-      }
-    })
-
-    if (user.kantor) {
+    if (izinLokasi.length > 0) {
+      izinLokasi.forEach((izin) => {
+        if (izin.lokasi) {
+          lokasiList.push({
+            id: izin.lokasi.id,
+            nama: izin.lokasi.name,
+            latitude: izin.lokasi.latitude,
+            longitude: izin.lokasi.longitude,
+            radiusMeter: izin.lokasi.radius,
+            tipe: 'izin_lokasi',
+          })
+        } else if (izin.kantor) {
+          lokasiList.push({
+            id: izin.kantor.id,
+            nama: izin.kantor.nama,
+            latitude: izin.kantor.latitude,
+            longitude: izin.kantor.longitude,
+            radiusMeter: izin.kantor.radiusMeter,
+            tipe: 'izin_lokasi',
+          })
+        }
+      })
+    } else if (user.kantor) {
       lokasiList.push({
-        id: user.kantor.id ?? '',
-        nama: user.kantor.nama ?? '',
-        latitude: user.kantor.latitude ?? 0,
-        longitude: user.kantor.longitude ?? 0,
-        radiusMeter: user.kantor.radiusMeter ?? 0,
+        id: user.kantor.id,
+        nama: user.kantor.nama,
+        latitude: user.kantor.latitude,
+        longitude: user.kantor.longitude,
+        radiusMeter: user.kantor.radiusMeter,
         tipe: 'kantor_tetap',
       })
     }
@@ -74,14 +87,12 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const offset = 7 * 60 
-    const startOfDay = new Date(now.getTime() + offset * 60 * 1000)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(now.getTime() + offset * 60 * 1000)
-    endOfDay.setHours(23, 59, 59, 999)
+    const startOfDay = startOfDayWIB(now)
+    const endOfDay = endOfDayWIB(now)
+
 
     console.log("🕒 Start of Day UTC:", startOfDay , " End of Day UTC:", endOfDay)
-
+    console.log("🕒 now (WIB):", now)
     const todayAttendance = await prisma.attendance.findMany({
       where: {
          userId: user.id,
@@ -91,16 +102,17 @@ export async function GET(
         },
       },
     })
-
+    console.log("🎟 izinLokasi ditemukan:", izinLokasi)
     console.log("🗒 Raw todayAttendance (DB):", todayAttendance)
     const attendanceByLocation = lokasiList.map((loc) => { 
-      const att = todayAttendance.find((a) =>
+    const att = todayAttendance.find((a) =>
       loc.tipe === 'kantor_tetap'
-        ? a.lokasiId === loc.id || a.lokasiId === null
-        : a.lokasiId === loc.id
+          ? a.kantorId === loc.id
+          : a.lokasiId === loc.id
       )
       return {
         ...loc,
+        fieldTarget: loc.tipe === 'kantor_tetap' ? 'kantorId' : 'lokasiId',
         clockIn: att?.clockIn ?? null,
         clockOut: att?.clockOut ?? null,
         status: att?.status ?? null,
@@ -110,9 +122,15 @@ export async function GET(
     console.log("📦 attendanceByLocation (hasil gabung):", attendanceByLocation)
     
     return NextResponse.json({
-      tipeLokasi: lokasiList.length > 1 ? 'multi_lokasi' : 'kantor_tetap',
-      lokasi: attendanceByLocation,
-    })
+        lokasi: attendanceByLocation,
+        tipeLokasi: 
+          lokasiList.every((l) => l.tipe === 'kantor_tetap')
+            ? 'kantor_tetap'
+            : lokasiList.every((l) => l.tipe === 'izin_lokasi')
+            ? 'izin_lokasi'
+            : 'multi_lokasi',
+      })
+
   } catch (error) {
     console.error(error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

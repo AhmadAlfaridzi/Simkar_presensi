@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
+import { nowWIB } from '@/lib/timezone'
 
 export async function POST(request: Request) {
   try {
@@ -44,10 +45,7 @@ export async function POST(request: Request) {
     }
   }
 
-    const localDate = new Date(date)
-    localDate.setHours(localDate.getHours() + 7)
-    localDate.setMinutes(0, 0, 0) 
-    const attendanceDate = localDate
+    const attendanceDate = nowWIB()
 
     const attendanceStatus: AttendanceStatus = convertStatus(status || '')
     const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
@@ -56,24 +54,28 @@ export async function POST(request: Request) {
 
     let validLokasiId: string | null = null
     let validKantorId: string | null = null;
-    
+    const now = nowWIB()
     if (lokasiId) {
-      const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId } })
+      const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId }, })
       const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
-        where: { lokasiId, userId }
-      }) 
+       where: {
+          lokasiId,
+          userId,
+          tanggalMulai: { lte: now },
+          tanggalSelesai: { gte: now },
+        },
+      })
      
-      if (lokasi || izinLokasi) {
+      if (lokasi && izinLokasi) {
         validLokasiId = lokasiId
-        validKantorId = null // karena ini lokasi dinas
+        validKantorId = null
       } else if (lokasiId === user?.kantorId) {
-        validKantorId = lokasiId // ini kantor tetap
-        validLokasiId = null
+        validKantorId = lokasiId 
       } else {
         return NextResponse.json({ error: 'Lokasi presensi tidak valid' }, { status: 400 })
       }
     } else {
-      const now = new Date()
+      
       const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
         where: {
           userId,
@@ -90,7 +92,6 @@ export async function POST(request: Request) {
       validLokasiId = null
     }
   }
-
 
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
@@ -154,7 +155,7 @@ export async function POST(request: Request) {
         latitude: latitude ?? null,
         longitude: longitude ?? null,
         location: location ?? null,
-        createdAt: new Date(),
+        createdAt: nowWIB(),
         kantorId: validKantorId,
         lokasiId: validLokasiId,
       },

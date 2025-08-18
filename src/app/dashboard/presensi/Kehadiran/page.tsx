@@ -86,7 +86,7 @@ useEffect(() => {
 
       const izinLokasiData = await izinLokasiRes.json()
       console.log("📡 API Response:", izinLokasiData)
-      console.log("📡 Raw todayAttendance dari API:", izinLokasiData.todayAttendance)
+      console.log("📡 Raw todayAttendance dari API:", izinLokasiData.lokasi)
 
 
       const lokasiArray = Array.isArray(izinLokasiData.lokasi) ? izinLokasiData.lokasi : []
