@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
-
+import { nowWIB, } from '@/lib/timezone'
+import { console } from 'inspector'
 
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-
+      console.log('📩 Data diterima di API /attendance:', data)
     const {
       userId,
       date,
@@ -28,21 +29,7 @@ export async function POST(request: Request) {
       )
     }
 
-  const attendanceDate = new Date(date)
-    attendanceDate.setHours(0, 0, 0, 0)
-    const attendanceStatus: AttendanceStatus = convertStatus(status || '')
-
-    const existingAttendance = await prisma.attendance.findFirst({
-      where: {
-      userId,
-      date: {
-        equals: attendanceDate
-      },
-      ...(lokasiId ? { lokasiId } : {})
-    }
-  })
-    
-    function convertStatus(status: string): AttendanceStatus {
+  function convertStatus(status: string): AttendanceStatus {
     switch(status.toLowerCase()) {
         case 'tepat waktu':
         case 'tepat_waktu':
@@ -57,17 +44,97 @@ export async function POST(request: Request) {
         default:
         return 'TEPAT_WAKTU'
     }
+  }
+
+    const attendanceDate = nowWIB()
+
+    const attendanceStatus: AttendanceStatus = convertStatus(status || '')
+    const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    
+
+    let validLokasiId: string | null = null
+    let validKantorId: string | null = null;
+    const now = nowWIB()
+    if (lokasiId) {
+      const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId }, })
+      const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
+       where: {
+          lokasiId,
+          userId,
+          tanggalMulai: { lte: now },
+          tanggalSelesai: { gte: now },
+        },
+      })
+     
+      if (lokasi && izinLokasi) {
+        validLokasiId = lokasiId
+        validKantorId = null
+      } else if (lokasiId === user?.kantorId) {
+        validKantorId = lokasiId 
+      } else {
+        return NextResponse.json({ error: 'Lokasi presensi tidak valid' }, { status: 400 })
+      }
+    } else {
+      
+      const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
+        where: {
+          userId,
+          tanggalMulai: { lte: now },
+          tanggalSelesai: { gte: now },
+        },
+      })
+
+    if (izinLokasi?.lokasiId) {
+      validLokasiId = izinLokasi.lokasiId
+      validKantorId = null
+    } else if (user?.kantorId) {
+      validKantorId = user.kantorId
+      validLokasiId = null
+    }
+  }
+    const today = attendanceDate.toISOString().split('T')[0]; 
+    const existingAttendance = await prisma.attendance.findFirst({
+      where: {
+        userId,
+        date: {
+          gte: new Date(today + 'T00:00:00.000Z'),
+          lte: new Date(today + 'T23:59:59.999Z'),
+        },
+        ...(validLokasiId ? { lokasiId: validLokasiId } : {}),
+        ...(validKantorId ? { kantorId: validKantorId } : {}),
+      },
+    });
+
+
+    const validateAttendance = () => {
+    if (clockIn) {
+      if (existingAttendance?.clockIn) 
+        throw new Error('Anda sudah melakukan presensi masuk di lokasi ini hari ini')
+    }
+    if (clockOut) {
+      if (!existingAttendance?.clockIn) 
+        throw new Error('Anda belum melakukan presensi masuk hari ini')
+      if (existingAttendance?.clockOut) 
+        throw new Error('Anda sudah melakukan presensi pulang hari ini')
+    }
+  }
+    
+    try {
+      validateAttendance()
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message }, { status: 400 })
     }
 
-    if (existingAttendance) {
       // Update absen pulang (clockOut)
+    if (existingAttendance) {
       const updated = await prisma.attendance.update({
         where: { id_at: existingAttendance.id_at },
         data: {
-          clockIn: existingAttendance.clockIn, 
+          clockIn: clockIn ?? existingAttendance.clockIn,
           clockOut: clockOut ?? existingAttendance.clockOut,
           status: attendanceStatus ?? existingAttendance.status,
-          photoIn: existingAttendance.photoIn,
+          photoIn: photoIn ?? existingAttendance.photoIn,
           photoOut: photoOut ?? existingAttendance.photoOut,
           latitude: latitude ?? existingAttendance.latitude,
           longitude: longitude ?? existingAttendance.longitude,
@@ -75,25 +142,27 @@ export async function POST(request: Request) {
         },
       })
       return NextResponse.json(updated)
-    } else { 
-      const created = await prisma.attendance.create({
-        data: {
-          id_at: crypto.randomUUID(),
-          userId,
-          date: attendanceDate,
-          clockIn: clockIn ?? '',
-          clockOut: null,
-          status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
-          photoIn: photoIn ?? null,
-          photoOut: null,
-          latitude: latitude ?? null,
-          longitude: longitude ?? null,
-          location: location ?? null,
-          createdAt: new Date(),
-        },
-      })
-      return NextResponse.json(created)
     }
+
+     const created = await prisma.attendance.create({
+      data: {
+        id_at: crypto.randomUUID(),
+        userId,
+        date: attendanceDate,
+        clockIn: clockIn ?? null,
+        clockOut: clockOut ?? null,
+        status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
+        photoIn: photoIn ?? null,
+        photoOut: photoOut ?? null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+        location: location ?? null,
+        createdAt: nowWIB(),
+        kantorId: validKantorId,
+        lokasiId: validLokasiId,
+      },
+    })
+    return NextResponse.json(created)
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message || 'Internal Server Error' },

@@ -8,9 +8,10 @@ type AttendanceCardProps = {
   type: 'masuk' | 'pulang'
   onClick: () => void
   scheduleTime: string
+  disabled?: boolean
 }
 
-export default function AttendanceCard({ type, onClick, scheduleTime }: AttendanceCardProps) {
+export default function AttendanceCard({ type, onClick, scheduleTime, disabled }: AttendanceCardProps) {
   const isClockIn = type === 'masuk'
   const icon = isClockIn ? <LogIn className="h-5 w-5 mr-2 text-green-500" /> : <LogOut className="h-5 w-5 mr-2 text-blue-500" />
   const borderColor = isClockIn ? 'border-green-500' : 'border-blue-500'
@@ -18,10 +19,13 @@ export default function AttendanceCard({ type, onClick, scheduleTime }: Attendan
   const description = isClockIn ? 'Klik untuk melakukan absen masuk' : 'Klik untuk melakukan absen pulang'
 
   return (
-    <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+    <motion.div whileHover={{ scale: disabled ? 1 : 1.03 }} whileTap={{ scale: disabled ? 1 : 0.98 }}>
       <Card 
-        className={`border-l-4 ${borderColor} cursor-pointer bg-[#2a2a2a] border-[#333333]`}
-        onClick={onClick}
+        className={`border-l-4 ${borderColor} cursor-pointer bg-[#2a2a2a] border-[#333333] ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onClick={() => {
+          if (disabled) return 
+          onClick()
+        }}
       >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">

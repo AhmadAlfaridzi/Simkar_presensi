@@ -128,6 +128,7 @@ model LokasiDinas {
   attendances  Attendance[]
 }
 
+
 model AbsensiIzinLokasi {
   id        String      @id @default(uuid()) @db.Uuid
   userId    String
@@ -137,7 +138,6 @@ model AbsensiIzinLokasi {
   tanggalSelesai DateTime
   keperluan String?
   createdAt DateTime    @default(now())
-  
   kantor    Kantor?     @relation(fields: [kantorId], references: [id])
   lokasi    LokasiDinas @relation(fields: [lokasiId], references: [id])
   user      User        @relation(fields: [userId], references: [customId])
