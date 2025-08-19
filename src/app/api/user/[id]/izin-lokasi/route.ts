@@ -101,12 +101,34 @@ export async function GET(
           ? a.kantorId === loc.id
           : a.lokasiId === loc.id
       )
+
+       // aturan enable/disable
+      let enableClockIn = false
+      let enableClockOut = false
+
+      if (!att) {
+        // belum ada presensi → bisa clockIn
+        enableClockIn = true
+        enableClockOut = false
+      } else {
+        if (att.clockIn && !att.clockOut) {
+          // sudah clockIn → hanya clockOut yang enable
+          enableClockIn = false
+          enableClockOut = true
+        } else {
+          // sudah lengkap (clockIn & clockOut) → semua disable
+          enableClockIn = false
+          enableClockOut = false
+        }
+      }
       return {
         ...loc,
         fieldTarget: loc.tipe === 'kantor_tetap' ? 'kantorId' : 'lokasiId',
         clockIn: att?.clockIn ?? null,
         clockOut: att?.clockOut ?? null,
         status: att?.status ?? null,
+        enableClockIn,  
+        enableClockOut,
       }
     })
 
