@@ -23,18 +23,6 @@ interface Props {
   initialEmployees: { id: string; name: string; department?: string; position?: string }[]
 }
 
-const calculateStats = (attendanceData: AttendanceRecord[], totalKaryawan: number) => {
-  const today = new Date().toISOString().split('T')[0]
-  const todayRecords = attendanceData.filter(record => record.date.includes(today))
-
-  return {
-    totalKaryawan,
-    tepatWaktu: todayRecords.filter(r => r.status === AttendanceStatus.TEPAT_WAKTU).length,
-    terlambat: todayRecords.filter(r => r.status === AttendanceStatus.TERLAMBAT).length,
-    tidakHadir: totalKaryawan - todayRecords.length,
-  }
-}
-
 export default function DashboardClient({ initialAttendance, initialEmployees }: Props) {
   const { user } = useAuth()
   const { setMetadata } = usePageMetadata()
@@ -108,6 +96,40 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
   }, [])
 
   if (!user) redirect('/login')
+
+  const calculateStats = (attendanceData: AttendanceRecord[], totalKaryawan: number) => {
+    const today = new Date().toISOString().split('T')[0]
+
+    const attendancePerUser = new Map<string, AttendanceRecord>()
+
+    attendanceData.forEach(record => {
+      const dateOnly = record.date.split('T')[0]
+      if (dateOnly !== today) return
+
+      const userId = record.userId
+      if (!attendancePerUser.has(userId)) {
+        attendancePerUser.set(userId, record)
+      } else {
+        // Pilih record clockIn paling awal jika ada lebih dari 1
+        const existing = attendancePerUser.get(userId)!
+        if (record.clockIn && existing.clockIn && record.clockIn < existing.clockIn) {
+          attendancePerUser.set(userId, record)
+        }
+      }
+    })
+
+    let tepatWaktu = 0
+    let terlambat = 0
+
+    attendancePerUser.forEach(record => {
+      if (record.status === AttendanceStatus.TEPAT_WAKTU) tepatWaktu += 1
+      else if (record.status === AttendanceStatus.TERLAMBAT) terlambat += 1
+    })
+
+    const tidakHadir = totalKaryawan - attendancePerUser.size
+
+    return { totalKaryawan, tepatWaktu, terlambat, tidakHadir }
+  }
 
   const dashboardStats = calculateStats(attendanceRecords, allEmployees.length)
   const todayAttendance = attendanceRecords.filter(record => isToday(new Date(record.date)))

@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 export default async function DashboardServer() {
   const karyawan = await prisma.karyawan.findMany({
+     where: {
+      user: {
+        role: { not: 'OWNER' },
+      },
+    },
     select: {
       id: true,
       customId: true,
@@ -53,7 +58,6 @@ export default async function DashboardServer() {
     photoIn: att.photoIn ?? '/images/placeholder-user.jpg',
     photoOut: att.photoOut ?? '/images/placeholder-user.jpg',
   }))
-
   return (
     <DashboardClient
       initialEmployees={karyawan}  
