@@ -101,8 +101,6 @@ export async function GET(
           ? a.kantorId === loc.id
           : a.lokasiId === loc.id
       )
-<<<<<<< HEAD
-=======
 
        // aturan enable/disable
       let enableClockIn = false
@@ -123,18 +121,14 @@ export async function GET(
           enableClockOut = false
         }
       }
->>>>>>> presensi
       return {
         ...loc,
         fieldTarget: loc.tipe === 'kantor_tetap' ? 'kantorId' : 'lokasiId',
         clockIn: att?.clockIn ?? null,
         clockOut: att?.clockOut ?? null,
         status: att?.status ?? null,
-<<<<<<< HEAD
-=======
         enableClockIn,  
         enableClockOut,
->>>>>>> presensi
       }
     })
 
