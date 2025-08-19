@@ -48,6 +48,8 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.sqlite
 prisma/migrations/
+prisma/*
+!/prisma/schema.prisma
 
 .DS_Store
 *.log
