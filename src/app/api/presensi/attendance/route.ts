@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
 import { nowWIB, } from '@/lib/timezone'
-import { console } from 'inspector'
+// import { console } from 'inspector'
 
 export async function POST(request: Request) {
   try {
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
   }
 
     const attendanceDate = nowWIB()
-
     const attendanceStatus: AttendanceStatus = convertStatus(status || '')
+   
     const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
     
@@ -56,28 +56,33 @@ export async function POST(request: Request) {
     let validLokasiId: string | null = null
     let validKantorId: string | null = null;
     const now = nowWIB()
+    
     if (lokasiId) {
-      const lokasi = await prisma.lokasiDinas.findUnique({ where: { id: lokasiId }, })
       const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
-       where: {
-          lokasiId,
+        where: {
           userId,
           tanggalMulai: { lte: now },
           tanggalSelesai: { gte: now },
+          OR: [{ lokasiId }, { kantorId: lokasiId }]
         },
       })
      
-      if (lokasi && izinLokasi) {
-        validLokasiId = lokasiId
-        validKantorId = null
+      if (izinLokasi?.lokasiId) {
+        validLokasiId = izinLokasi.lokasiId
+      } else if (izinLokasi?.kantorId) {
+        validKantorId = izinLokasi.kantorId
       } else if (lokasiId === user?.kantorId) {
-        validKantorId = lokasiId 
+        // fallback ke kantor tetap
+        validKantorId = lokasiId
       } else {
-        return NextResponse.json({ error: 'Lokasi presensi tidak valid' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Lokasi presensi tidak valid' },
+          { status: 400 }
+        )
       }
     } else {
       
-      const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
+    const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
         where: {
           userId,
           tanggalMulai: { lte: now },
