@@ -160,7 +160,7 @@ useEffect(() => {
         console.error("❌ Gagal mendapatkan lokasi:", err)
         alert("Gagal mendapatkan lokasi. Pastikan izin lokasi diizinkan di browser.")
       })
-  }, [user])
+  }, [user, lokasiList])
 
   const requestLocation = (minAccuracy = 30, maxRetry = 3) => {
     return new Promise<{ latitude: number; longitude: number; accuracy: number }>((resolve, reject) => {
@@ -194,11 +194,8 @@ useEffect(() => {
       getPosition()
     })
   }
-    const getDistanceMeter = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
+
+  const getDistanceMeter = ( lat1: number, lon1: number, lat2: number, lon2: number,
   ) => {
     const toRad = (value: number) => (value * Math.PI) / 180
     const R = 6371000 
@@ -267,10 +264,9 @@ useEffect(() => {
   }
 
   const handleSubmitAttendance = async () => {
-    if (isSubmitting) return   
+     if (isSubmitting || !user || !selectedLokasiId) return
       setIsSubmitting(true)
 
-    if (!user) return
     try {
       const isMasuk = modalType === 'masuk'
       const payload = {
@@ -330,6 +326,7 @@ useEffect(() => {
       setAttendancePhoto(null)
       setAttendanceLocation(null)
       setGeoCoords(null)
+      setIsSubmitting(false)
       // setSelectedLokasiId(null)
     }
   }
