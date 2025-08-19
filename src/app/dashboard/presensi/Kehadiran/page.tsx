@@ -46,12 +46,13 @@ const [todayAttendance, setTodayAttendance] = useState<
   { lokasiId: string; clockIn: string | null; clockOut: string | null }[]
 >([])
 
+const hasPendingClockOut = todayAttendance.some(a => a.clockIn && !a.clockOut)
 const selectedAttendance = selectedLokasiId
   ? todayAttendance.find(a => a.lokasiId === selectedLokasiId)
   : undefined
 
 
-const disableMasuk  = selectedAttendance ? selectedAttendance.clockIn !== null : false
+const disableMasuk  = hasPendingClockOut || (selectedAttendance ? selectedAttendance.clockIn !== null : false)
 const disablePulang = selectedAttendance ? (selectedAttendance.clockIn === null || selectedAttendance.clockOut !== null) : true
 
 useEffect(() => {
