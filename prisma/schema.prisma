@@ -65,7 +65,7 @@ model Attendance {
   kantorId     String?          @db.Uuid
   lokasiId     String?          @db.Uuid
   date         DateTime
-  clockIn      String
+  clockIn      String?
   clockOut     String?
   status       AttendanceStatus
   photoIn      String?

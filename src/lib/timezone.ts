@@ -1,17 +1,29 @@
+import { toZonedTime,formatInTimeZone } from "date-fns-tz";
+
+const timeZone = "Asia/Jakarta";
+
 export function nowWIB(): Date {
-  const now = new Date();
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000; 
-  return new Date(utc + 7 * 60 * 60 * 1000); 
+  return toZonedTime(new Date(), timeZone);
 }
 
 export function startOfDayWIB(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0); 
-  return d;
+  const zoned = toZonedTime(date, timeZone);
+  zoned.setHours(0, 0, 0, 0);
+  return zoned;
 }
 
 export function endOfDayWIB(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999); 
-  return d;
+  const zoned = toZonedTime(date, timeZone);
+  zoned.setHours(23, 59, 59, 999);
+  return zoned;
+}
+
+export function formatDateWIB(date: Date, pattern = "yyyy-MM-dd"): string {
+  return formatInTimeZone(date, timeZone, pattern)
+}
+
+
+export function isWeekendWIB(date: Date = nowWIB()): boolean {
+  const day = date.getDay();
+  return day === 0 ; 
 }
