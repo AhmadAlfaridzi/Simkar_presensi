@@ -1,8 +1,24 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
-import { nowWIB, } from '@/lib/timezone'
+import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB } from '@/lib/timezone'
+import { console } from 'node:inspector'
 // import { console } from 'inspector'
+
+function getAttendanceStatusByNow(
+  now: Date,
+  hasIzinLokasi: boolean,
+  isSecondClockIn: boolean
+): AttendanceStatus {
+  const minutes = now.getHours() * 60 + now.getMinutes()
+
+  if (isSecondClockIn) return 'TEPAT_WAKTU' 
+  if (hasIzinLokasi) return 'TEPAT_WAKTU'  
+
+  if (minutes <= 8 * 60 + 30) return 'TEPAT_WAKTU'
+  if (minutes <= 9 * 60) return 'TERLAMBAT'
+  return 'TIDAK_HADIR'
+}
 
 export async function POST(request: Request) {
   try {
@@ -10,10 +26,8 @@ export async function POST(request: Request) {
       console.log('📩 Data diterima di API /attendance:', data)
     const {
       userId,
-      date,
       clockIn,
       clockOut,
-      status,
       photoIn,
       photoOut,
       latitude,
@@ -21,42 +35,29 @@ export async function POST(request: Request) {
       location,
       lokasiId,
     } = data
-
-    if (!userId || !date) {
+    
+    if (!userId ) {
       return NextResponse.json(
         { error: 'userId and date are required' },
         { status: 400 }
       )
     }
 
-  function convertStatus(status: string): AttendanceStatus {
-    switch(status.toLowerCase()) {
-        case 'tepat waktu':
-        case 'tepat_waktu':
-        case 'TEPAT_WAKTU':
-        return 'TEPAT_WAKTU'
-        case 'terlambat':
-        case 'TERLAMBAT':
-        return 'TERLAMBAT'
-        case 'tidak hadir':
-        case 'TIDAK_HADIR':
-        return 'TIDAK_HADIR'
-        default:
-        return 'TEPAT_WAKTU'
+    const now = nowWIB()
+    if (isWeekendWIB(now)) {
+      return NextResponse.json(
+        { error: 'Hari ini libur (weekend), tidak bisa presensi' },
+        { status: 400 }
+      )
     }
-  }
-
-    const attendanceDate = nowWIB()
-    const attendanceStatus: AttendanceStatus = convertStatus(status || '')
    
     const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
     
 
-    let validLokasiId: string | null = null
+    let validLokasiId: string | null = null;
     let validKantorId: string | null = null;
-    const now = nowWIB()
-    
+
     if (lokasiId) {
       const izinLokasi = await prisma.absensiIzinLokasi.findFirst({
         where: {
@@ -98,19 +99,25 @@ export async function POST(request: Request) {
       validLokasiId = null
     }
   }
-    const today = attendanceDate.toISOString().split('T')[0]; 
+  
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
         userId,
         date: {
-          gte: new Date(today + 'T00:00:00.000Z'),
-          lte: new Date(today + 'T23:59:59.999Z'),
+          gte: startOfDayWIB(now),
+          lte: endOfDayWIB(now),
         },
         ...(validLokasiId ? { lokasiId: validLokasiId } : {}),
         ...(validKantorId ? { kantorId: validKantorId } : {}),
       },
-    });
+    })
 
+    let attendanceStatus: AttendanceStatus | undefined
+    if (clockIn) {
+      const hasIzinLokasi = !!existingAttendance?.lokasiId 
+      const isSecondClockIn = !!existingAttendance?.clockIn
+      attendanceStatus = getAttendanceStatusByNow(now, hasIzinLokasi, isSecondClockIn)
+    }
 
     const validateAttendance = () => {
     if (clockIn) {
@@ -138,7 +145,6 @@ export async function POST(request: Request) {
         data: {
           clockIn: clockIn ?? existingAttendance.clockIn,
           clockOut: clockOut ?? existingAttendance.clockOut,
-          status: attendanceStatus ?? existingAttendance.status,
           photoIn: photoIn ?? existingAttendance.photoIn,
           photoOut: photoOut ?? existingAttendance.photoOut,
           latitude: latitude ?? existingAttendance.latitude,
@@ -146,14 +152,14 @@ export async function POST(request: Request) {
           location: location ?? existingAttendance.location,
         },
       })
+
       return NextResponse.json(updated)
     }
-
      const created = await prisma.attendance.create({
       data: {
         id_at: crypto.randomUUID(),
         userId,
-        date: attendanceDate,
+        date: now,
         clockIn: clockIn ?? null,
         clockOut: clockOut ?? null,
         status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
@@ -162,11 +168,12 @@ export async function POST(request: Request) {
         latitude: latitude ?? null,
         longitude: longitude ?? null,
         location: location ?? null,
-        createdAt: nowWIB(),
+        createdAt: now,
         kantorId: validKantorId,
         lokasiId: validLokasiId,
       },
     })
+
     return NextResponse.json(created)
   } catch (error) {
     return NextResponse.json(

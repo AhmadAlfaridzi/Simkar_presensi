@@ -16,7 +16,8 @@ export async function GET(
     }
 
     const now = nowWIB()
-    // console.log("🕒 now (WIB):", now)
+    const startOfDay = startOfDayWIB(now)
+    const endOfDay = endOfDayWIB(now)
     
     const izinLokasi = await prisma.absensiIzinLokasi.findMany({
       where: {
@@ -80,19 +81,16 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const startOfDay = startOfDayWIB(now)
-    const endOfDay = endOfDayWIB(now)
-
-
     const todayAttendance = await prisma.attendance.findMany({
       where: {
-         userId: user.customId,
+        userId: user.customId,
         date: {
           gte: startOfDay,
           lte: endOfDay,
         },
       },
     })
+    
     console.log("🎟 izinLokasi ditemukan:", izinLokasi)
     console.log("🗒 Raw todayAttendance (DB):", todayAttendance)
     const attendanceByLocation = lokasiList.map((loc) => { 
@@ -102,21 +100,17 @@ export async function GET(
           : a.lokasiId === loc.id
       )
 
-       // aturan enable/disable
       let enableClockIn = false
       let enableClockOut = false
 
       if (!att) {
-        // belum ada presensi → bisa clockIn
         enableClockIn = true
         enableClockOut = false
       } else {
         if (att.clockIn && !att.clockOut) {
-          // sudah clockIn → hanya clockOut yang enable
           enableClockIn = false
           enableClockOut = true
         } else {
-          // sudah lengkap (clockIn & clockOut) → semua disable
           enableClockIn = false
           enableClockOut = false
         }

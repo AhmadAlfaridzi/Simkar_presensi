@@ -4,7 +4,7 @@ export interface AttendanceRecord {
   id_at: string;
   userId: string;
   date: string;
-  clockIn: string;
+  clockIn?: string | null;
   clockOut?: string | null;
   status: AttendanceStatus;
 
