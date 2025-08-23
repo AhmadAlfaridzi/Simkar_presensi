@@ -25,5 +25,5 @@ export function formatDateWIB(date: Date, pattern = "yyyy-MM-dd"): string {
 
 export function isWeekendWIB(date: Date = nowWIB()): boolean {
   const day = date.getDay();
-  return day === 0 ; 
+  return day === 0 || day == 6 ; 
 }

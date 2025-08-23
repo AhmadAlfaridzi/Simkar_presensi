@@ -27,11 +27,21 @@ const calculateStats = (attendanceData: AttendanceRecord[], totalKaryawan: numbe
   const today = new Date().toISOString().split('T')[0]
   const todayRecords = attendanceData.filter(record => record.date.includes(today))
 
+  // Gunakan Map untuk deduplikasi user
+  const userStatusMap = new Map<string, AttendanceStatus>()
+  todayRecords.forEach(record => {
+    if (!userStatusMap.has(record.userId)) {
+      userStatusMap.set(record.userId, record.status)
+    }
+  })
+
+  const statuses = Array.from(userStatusMap.values())
+
   return {
     totalKaryawan,
-    tepatWaktu: todayRecords.filter(r => r.status === AttendanceStatus.TEPAT_WAKTU).length,
-    terlambat: todayRecords.filter(r => r.status === AttendanceStatus.TERLAMBAT).length,
-    tidakHadir: totalKaryawan - todayRecords.length,
+    tepatWaktu: statuses.filter(s => s === AttendanceStatus.TEPAT_WAKTU).length,
+    terlambat: statuses.filter(s => s === AttendanceStatus.TERLAMBAT).length,
+    tidakHadir: statuses.filter(s => s === AttendanceStatus.TIDAK_HADIR).length,
   }
 }
 
@@ -108,9 +118,12 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
   }, [])
 
   if (!user) redirect('/login')
+  
+  const filteredEmployees = allEmployees.filter(emp => (emp as any).position !== 'Owner')
+  const filteredAttendance = attendanceRecords.filter(att => att.userId !== 'OWNER')
 
-  const dashboardStats = calculateStats(attendanceRecords, allEmployees.length)
-  const todayAttendance = attendanceRecords.filter(record => isToday(new Date(record.date)))
+  const dashboardStats = calculateStats(filteredAttendance, filteredEmployees.length)
+  const todayAttendance = filteredAttendance.filter(record => isToday(new Date(record.date)))
 
   const todayAttendanceColumns: ColumnDef<AttendanceRecord>[] = [
     {
