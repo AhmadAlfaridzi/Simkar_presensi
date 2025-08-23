@@ -95,10 +95,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
           fetch(`/api/attendance?date=${today}`, { cache: 'no-store' }),
           fetch('/api/karyawan', { cache: 'no-store' }),
         ])
-
-        if (!attendanceRes.ok || !employeesRes.ok) {
-          throw new Error('Failed to fetch data')
-        }
+        if (!attendanceRes.ok || !employeesRes.ok) throw new Error('Failed to fetch data')
 
         const attendanceData = await attendanceRes.json() as AttendanceRecord[]
         const employeesData = await employeesRes.json()
@@ -112,8 +109,8 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
       }
     }
 
-    const interval = setInterval(fetchLatestData, 100000)
-
+    fetchLatestData() 
+    const interval = setInterval(fetchLatestData, 30000) 
     return () => clearInterval(interval)
   }, [])
 
