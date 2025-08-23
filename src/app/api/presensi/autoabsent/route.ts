@@ -3,8 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB } from '@/lib/timezone';
 import { AttendanceStatus } from '@prisma/client';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
     const now = nowWIB();
 
     if (isWeekendWIB(now)) {
