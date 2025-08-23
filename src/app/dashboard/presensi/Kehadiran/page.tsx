@@ -6,6 +6,7 @@ import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
 import UserInfo from '@/components/Presensi/userInfo'
 import type { LokasiType } from '@/types/location'
+import { nowWIB, isWeekendWIB  } from '@/lib/timezone'
 
 export default function AbsenPage() {
   const { user } = useAuth()
@@ -21,6 +22,7 @@ export default function AbsenPage() {
   const [lokasiList, setLokasiList] = useState<LokasiType[]>([])
   const [selectedLokasiId, setSelectedLokasiId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isWeekend = isWeekendWIB(nowWIB())
 
     //  const handleScanSuccess = (decodedText: string) => {
     //   console.log('QR Code scanned:', decodedText)
@@ -52,8 +54,8 @@ const selectedAttendance = selectedLokasiId
   : undefined
 
 
-const disableMasuk  = hasPendingClockOut || (selectedAttendance ? selectedAttendance.clockIn !== null : false)
-const disablePulang = selectedAttendance ? (selectedAttendance.clockIn === null || selectedAttendance.clockOut !== null) : true
+const disableMasuk  = isWeekend || (selectedAttendance ? selectedAttendance.clockIn !== null : false)
+const disablePulang = isWeekend || (selectedAttendance ? (selectedAttendance.clockIn === null || selectedAttendance.clockOut !== null) : true)
 
 useEffect(() => {
     const timer = setInterval(() => {
@@ -163,7 +165,7 @@ useEffect(() => {
       })
   }, [user, lokasiList])
 
-  const requestLocation = (minAccuracy = 30, maxRetry = 3) => {
+  const requestLocation = (minAccuracy = 100, maxRetry = 3) => {
     return new Promise<{ latitude: number; longitude: number; accuracy: number }>((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error('Geolocation not supported'))
@@ -269,13 +271,12 @@ useEffect(() => {
       setIsSubmitting(true)
 
     try {
+      const wibNow = nowWIB()
       const isMasuk = modalType === 'masuk'
       const payload = {
         userId: user.customId,
-        date: new Date().toISOString(),
-        clockIn: isMasuk ? attendanceTime : null,
-        clockOut: isMasuk ? null : attendanceTime,
-        status: 'TEPAT_WAKTU',
+        clockIn: isMasuk ? wibNow.toISOString() : null,
+        clockOut: isMasuk ? null : wibNow.toISOString(),
         photoIn: isMasuk ? attendancePhoto : null,
         photoOut: isMasuk ? null : attendancePhoto,
         latitude: geoCoords?.latitude ?? null,

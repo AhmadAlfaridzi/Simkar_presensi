@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/presensi/autoabsent/route.ts": {
+      "runtime": "edge"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/presensi/autoabsent",
+      "schedule": "0 2 * * 1-5"
+    }
+  ]
+}

@@ -65,7 +65,7 @@ model Attendance {
   kantorId     String?          @db.Uuid
   lokasiId     String?          @db.Uuid
   date         DateTime
-  clockIn      String
+  clockIn      String?
   clockOut     String?
   status       AttendanceStatus
   photoIn      String?
@@ -94,16 +94,7 @@ model Barcode {
 model AlatKalibrasi {
   id                 String   @id @default(uuid()) @db.Uuid
   nama_alat          String
-  merek_model        String
-  nomor_seri         String   @unique
-  rentang_pengukuran String
-  kelas_akurasi      String
-  tanggal_kalibrasi  String
-  tanggal_kadaluarsa String
-  id_lokasi          String
-  status             String
-  foto               String?
-  createdAt          DateTime @default(now())
+  wilayahKerja       wilayahKerja[]
 }
 
 model SparePart {
@@ -123,9 +114,13 @@ model LokasiDinas {
   name      String
   latitude  Float
   longitude Float
+  Lokasi    String
+  SK String
+  satuanKerja   SatuanKerja?   @relation(fields: [SK], references: [kodeSK])
   radius    Int                 @default(100)
   izinList  AbsensiIzinLokasi[]
   attendances  Attendance[]
+  wilayahKerja wilayahKerja[]
 }
 
 
@@ -139,7 +134,7 @@ model AbsensiIzinLokasi {
   keperluan String?
   createdAt DateTime    @default(now())
   kantor    Kantor?     @relation(fields: [kantorId], references: [id])
-  lokasi    LokasiDinas @relation(fields: [lokasiId], references: [id])
+  lokasi    LokasiDinas? @relation(fields: [lokasiId], references: [id])
   user      User        @relation(fields: [userId], references: [customId])
 }
 
@@ -155,6 +150,23 @@ model Kantor {
   izinLokasi  AbsensiIzinLokasi[]
   attendances  Attendance[]
   users       User[]              @relation("KantorUsers")
+}
+
+model SatuanKerja {
+  id          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kodeSK      String              @unique
+  NamaSK      String 
+  Lokasi      LokasiDinas[]
+}
+
+model wilayahKerja {
+  id          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unit        Int
+  id_LK      String       @db.Uuid
+  id_AK        String     @db.Uuid
+
+  alatKalibrasi AlatKalibrasi @relation(fields: [id_AK], references: [id])
+  lokasiDinas   LokasiDinas   @relation(fields: [id_LK], references: [id])
 }
 
 enum Role {
