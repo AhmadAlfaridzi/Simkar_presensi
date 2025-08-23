@@ -53,8 +53,8 @@ const selectedAttendance = selectedLokasiId
   ? todayAttendance.find(a => a.lokasiId === selectedLokasiId)
   : undefined
 
+const disableMasuk = isWeekend || (selectedAttendance ? selectedAttendance.clockIn !== null : false) || hasPendingClockOut
 
-const disableMasuk  = isWeekend || (selectedAttendance ? selectedAttendance.clockIn !== null : false)
 const disablePulang = isWeekend || (selectedAttendance ? (selectedAttendance.clockIn === null || selectedAttendance.clockOut !== null) : true)
 
 useEffect(() => {
