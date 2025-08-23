@@ -119,7 +119,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
 
   if (!user) redirect('/login')
   
-  const filteredEmployees = allEmployees.filter(emp => (emp as any).position !== 'Owner')
+  const filteredEmployees = allEmployees.filter(emp => emp.position !== 'Owner')
   const filteredAttendance = attendanceRecords.filter(att => att.userId !== 'OWNER')
 
   const dashboardStats = calculateStats(filteredAttendance, filteredEmployees.length)
