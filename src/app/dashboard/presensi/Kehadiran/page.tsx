@@ -6,6 +6,7 @@ import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
 import UserInfo from '@/components/Presensi/userInfo'
 import type { LokasiType } from '@/types/location'
+import { nowWIB } from '@/lib/timezone'
 
 export default function AbsenPage() {
   const { user } = useAuth()
@@ -268,10 +269,11 @@ useEffect(() => {
       setIsSubmitting(true)
 
     try {
+      const wibNow = nowWIB()
       const isMasuk = modalType === 'masuk'
       const payload = {
         userId: user.customId,
-        date: new Date().toISOString(),
+        date:  wibNow.toISOString(),  
         clockIn: isMasuk ? attendanceTime : null,
         clockOut: isMasuk ? null : attendanceTime,
         status: 'TEPAT_WAKTU',

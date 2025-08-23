@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
 import { nowWIB, } from '@/lib/timezone'
+import { console } from 'node:inspector'
 // import { console } from 'inspector'
 
 export async function POST(request: Request) {
@@ -46,7 +47,6 @@ export async function POST(request: Request) {
     }
   }
 
-    const attendanceDate = nowWIB()
     const attendanceStatus: AttendanceStatus = convertStatus(status || '')
    
     const user = await prisma.user.findUnique({ where: { customId: userId }, select: { kantorId: true } })
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       validLokasiId = null
     }
   }
-    const today = attendanceDate.toISOString().split('T')[0]; 
+    const today = now.toISOString().split('T')[0]; 
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
         userId,
@@ -146,14 +146,14 @@ export async function POST(request: Request) {
           location: location ?? existingAttendance.location,
         },
       })
+      console.log ("nilai now",now, "nilai wib",nowWIB()) 
       return NextResponse.json(updated)
     }
-
      const created = await prisma.attendance.create({
       data: {
         id_at: crypto.randomUUID(),
         userId,
-        date: attendanceDate,
+        date: now,
         clockIn: clockIn ?? null,
         clockOut: clockOut ?? null,
         status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
@@ -167,6 +167,7 @@ export async function POST(request: Request) {
         lokasiId: validLokasiId,
       },
     })
+    console.log ("nilai now",now, "nilai wib",nowWIB()) 
     return NextResponse.json(created)
   } catch (error) {
     return NextResponse.json(

@@ -80,19 +80,19 @@ export async function GET(
       return NextResponse.json({ error: 'No active location found' }, { status: 404 })
     }
 
-    const startOfDay = startOfDayWIB(now)
-    const endOfDay = endOfDayWIB(now)
-
+    const startOfDay = startOfDayWIB(now);
+    const endOfDay = endOfDayWIB(now);
 
     const todayAttendance = await prisma.attendance.findMany({
       where: {
-         userId: user.customId,
+        userId: user.customId,
         date: {
           gte: startOfDay,
           lte: endOfDay,
         },
       },
     })
+    
     console.log("🎟 izinLokasi ditemukan:", izinLokasi)
     console.log("🗒 Raw todayAttendance (DB):", todayAttendance)
     const attendanceByLocation = lokasiList.map((loc) => { 
