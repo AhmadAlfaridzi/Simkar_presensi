@@ -1,10 +1,4 @@
 {
-  "functions": {
-    "api/presensi/autoabsent/route.ts": {
-      "runtime": "vercel-nodejs@20.4.0"
-
-    }
-  },
   "crons": [
     {
       "path": "/api/presensi/autoabsent",
