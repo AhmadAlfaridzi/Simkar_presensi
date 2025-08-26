@@ -1,4 +1,4 @@
-import { toZonedTime,formatInTimeZone } from "date-fns-tz";
+import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 
 const timeZone = "Asia/Jakarta";
 
@@ -19,11 +19,18 @@ export function endOfDayWIB(date: Date): Date {
 }
 
 export function formatDateWIB(date: Date, pattern = "yyyy-MM-dd"): string {
-  return formatInTimeZone(date, timeZone, pattern)
+  return formatInTimeZone(date, timeZone, pattern);
 }
 
+export function formatTimeWIB(date: Date, pattern = "HH:mm:ss"): string {
+  return formatInTimeZone(date, timeZone, pattern);
+}
+
+export function formatDateTimeWIB(date: Date, pattern = "yyyy-MM-dd HH:mm:ss"): string {
+  return formatInTimeZone(date, timeZone, pattern);
+}
 
 export function isWeekendWIB(date: Date = nowWIB()): boolean {
   const day = date.getDay();
-  return day === 0 || day == 6 ; 
+  return day === 0 || day === 6;
 }

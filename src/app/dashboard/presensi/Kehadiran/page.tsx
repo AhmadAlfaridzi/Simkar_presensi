@@ -6,7 +6,7 @@ import AttendanceCard from '@/components/Presensi/attendanceCard'
 import AttendanceModal from '@/components/Presensi/attendanceModal'
 import UserInfo from '@/components/Presensi/userInfo'
 import type { LokasiType } from '@/types/location'
-import { nowWIB, isWeekendWIB  } from '@/lib/timezone'
+import { nowWIB, isWeekendWIB, formatTimeWIB, formatDateWIB, formatDateTimeWIB  } from '@/lib/timezone'
 
 export default function AbsenPage() {
   const { user } = useAuth()
@@ -275,14 +275,16 @@ useEffect(() => {
       const isMasuk = modalType === 'masuk'
       const payload = {
         userId: user.customId,
-        clockIn: isMasuk ? wibNow.toISOString() : null,
-        clockOut: isMasuk ? null : wibNow.toISOString(),
+        clockIn: isMasuk ? formatTimeWIB(wibNow) : null,
+        clockOut: isMasuk ? null : formatTimeWIB(wibNow),
         photoIn: isMasuk ? attendancePhoto : null,
         photoOut: isMasuk ? null : attendancePhoto,
         latitude: geoCoords?.latitude ?? null,
         longitude: geoCoords?.longitude ?? null,
         location: attendanceLocation,
-        lokasiId: selectedLokasiId
+        lokasiId: selectedLokasiId,
+        date: formatDateWIB(wibNow),
+        createdAt: formatDateTimeWIB(wibNow)
       }
 
       console.log('📝 Payload sebelum submit:', payload)

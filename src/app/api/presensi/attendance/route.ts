@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
-import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB } from '@/lib/timezone'
+import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB,formatDateWIB, formatDateTimeWIB } from '@/lib/timezone'
 import { console } from 'node:inspector'
 // import { console } from 'inspector'
 
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
       data: {
         id_at: crypto.randomUUID(),
         userId,
-        date: now,
+        date: startOfDayWIB(now),
         clockIn: clockIn ?? null,
         clockOut: clockOut ?? null,
         status: attendanceStatus ?? AttendanceStatus.TEPAT_WAKTU,
