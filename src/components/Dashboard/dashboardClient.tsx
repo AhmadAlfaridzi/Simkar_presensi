@@ -17,6 +17,7 @@ import { usePageMetadata } from '@/context/pageMetadataContext'
 import { attendanceStatusLabel } from '@/lib/proper-text'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useMobile } from '@/hooks/use-mobile'
+import { startOfDayWIB, endOfDayWIB } from '@/lib/timezone'
 
 interface Props {
   initialAttendance: AttendanceRecord[]
@@ -24,8 +25,13 @@ interface Props {
 }
 
 const calculateStats = (attendanceData: AttendanceRecord[], totalKaryawan: number) => {
-  const today = new Date().toISOString().split('T')[0]
-  const todayRecords = attendanceData.filter(record => record.date.includes(today))
+  const start = startOfDayWIB(new Date())
+  const end = endOfDayWIB(new Date())
+  
+  const todayRecords = attendanceData.filter(record => {
+    const recordDate = new Date(record.date)
+    return recordDate >= start && recordDate <= end
+  })
 
   // Gunakan Map untuk deduplikasi user
   const userStatusMap = new Map<string, AttendanceStatus>()

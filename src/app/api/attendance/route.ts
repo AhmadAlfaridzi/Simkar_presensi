@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { startOfDayWIB,endOfDayWIB } from "@/lib/timezone";
 
 export async function GET(request: Request) {
   try {
@@ -11,8 +12,8 @@ export async function GET(request: Request) {
     const where = dateFilter
       ? {
           date: {
-            gte: new Date(dateFilter),
-            lt: new Date(new Date(dateFilter).getTime() + 24 * 60 * 60 * 1000),
+            gte: startOfDayWIB(new Date(dateFilter)),
+            lte: endOfDayWIB(new Date(dateFilter)),
           },
         }
       : {};
