@@ -34,3 +34,8 @@ export function isWeekendWIB(date: Date = nowWIB()): boolean {
   const day = date.getDay();
   return day === 0 || day === 6;
 }
+
+export function getMonthWIB(date: Date): number {
+  const zoned = toZonedTime(date, timeZone);
+  return zoned.getMonth();
+}

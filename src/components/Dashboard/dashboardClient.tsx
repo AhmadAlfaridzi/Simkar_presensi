@@ -17,7 +17,7 @@ import { usePageMetadata } from '@/context/pageMetadataContext'
 import { attendanceStatusLabel } from '@/lib/proper-text'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useMobile } from '@/hooks/use-mobile'
-import { startOfDayWIB, endOfDayWIB } from '@/lib/timezone'
+import { startOfDayWIB, endOfDayWIB, formatDateWIB } from '@/lib/timezone'
 
 interface Props {
   initialAttendance: AttendanceRecord[]
@@ -51,6 +51,8 @@ const calculateStats = (attendanceData: AttendanceRecord[], totalKaryawan: numbe
   }
 }
 
+
+
 export default function DashboardClient({ initialAttendance, initialEmployees }: Props) {
   const { user } = useAuth()
   const { setMetadata } = usePageMetadata()
@@ -60,27 +62,57 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
   const [loading, setLoading] = useState(false)
   const isMobile = useMobile()
 
-  const attendanceDataY = [
-    { name: 'Jan', hadir: 45, terlambat: 5, tidakHadir: 2 },
-    { name: 'Feb', hadir: 42, terlambat: 8, tidakHadir: 3 },
-    { name: 'Mar', hadir: 48, terlambat: 2, tidakHadir: 1 },
-    { name: 'Apr', hadir: 42, terlambat: 8, tidakHadir: 3 },
-    { name: 'Mei', hadir: 48, terlambat: 2, tidakHadir: 1 },
-    { name: 'Jun', hadir: 45, terlambat: 5, tidakHadir: 2 },
-    { name: 'Jul', hadir: 42, terlambat: 8, tidakHadir: 3 },
-    { name: 'Agu', hadir: 48, terlambat: 2, tidakHadir: 1 },
-    { name: 'Sep', hadir: 42, terlambat: 8, tidakHadir: 3 },
-    { name: 'Okt', hadir: 48, terlambat: 2, tidakHadir: 1 },
-    { name: 'Nov', hadir: 48, terlambat: 2, tidakHadir: 1 },
-    { name: 'Des', hadir: 42, terlambat: 8, tidakHadir: 3 },
-  ]
+  const [monthlyStats, setMonthlyStats] = useState<
+      { name: string; hadir: number; terlambat: number; tidakHadir: number }[]
+    >([])
 
- const attendanceDataM = [
-    { name: '1 Apr', hadir: 2, terlambat: 0, tidakHadir: 1 },
-    { name: '2 Apr', hadir: 4, terlambat: 1, tidakHadir: 0 },
-    { name: '3 Apr', hadir: 3, terlambat: 2, tidakHadir: 0 },
-    { name: '4 Apr', hadir: 5, terlambat: 0, tidakHadir: 0 },
- ]
+    useEffect(() => {
+      async function fetchStats() {
+        try {
+          const res = await fetch('/api/attendance/stats', { cache: 'no-store' })
+          if (!res.ok) throw new Error('Failed to fetch yearly stats')
+          const data = await res.json()
+          setMonthlyStats(data)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+
+      fetchStats()
+    }, [])
+  
+ 
+const attendanceDataM = (() => {
+  const now = new Date()
+  const month = now.getMonth() + 1
+  const year = now.getFullYear()
+  const daysInMonth = new Date(year, month, 0).getDate()
+
+  const data = []
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+
+    // filter pakai WIB
+    const dayRecords = attendanceRecords.filter(r =>
+      formatDateWIB(new Date(r.date), 'yyyy-MM-dd') === dateStr
+    )
+
+    const hadir = dayRecords.filter(r => r.status === 'TEPAT_WAKTU' || r.status === 'TERLAMBAT').length
+    const terlambat = dayRecords.filter(r => r.status === 'TERLAMBAT').length
+    const tidakHadir = dayRecords.filter(r => r.status === 'TIDAK_HADIR').length
+
+    data.push({
+      name: `${day} ${formatDateWIB(new Date(`${year}-${month}-${day}`), 'MMM')}`,
+      hadir,
+      terlambat,
+      tidakHadir
+    })
+  }
+
+  return data
+})()
+
 
   useEffect(() => {
     setMetadata({
@@ -190,16 +222,16 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
         <h2 className="text-lg sm:text-xl font-bold mb-4">Grafik Kehadiran Karyawan</h2>
         <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={isMobile ? attendanceDataM  : attendanceDataY }>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-                    <XAxis dataKey="name" stroke="#a0aec0" />
-                    <YAxis stroke="#a0aec0" />
-                    <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#2d3748' }} itemStyle={{ color: '#a0aec0' }} />
-                    <Legend />
-                    <Bar dataKey="hadir" fill="#48bb78" name="Hadir" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="terlambat" fill="#ecc94b" name="Terlambat" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="tidakHadir" fill="#f56565" name="Tidak Hadir" radius={[4, 4, 0, 0]} />
-                </BarChart>
+              <BarChart data={isMobile ? attendanceDataM : monthlyStats}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis dataKey="name" stroke="#a0aec0" />
+                <YAxis stroke="#a0aec0" />
+                <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#2d3748' }} itemStyle={{ color: '#a0aec0' }} />
+                <Legend />
+                <Bar dataKey="hadir" fill="#48bb78" name="Hadir" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="terlambat" fill="#ecc94b" name="Terlambat" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="tidakHadir" fill="#f56565" name="Tidak Hadir" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
         </div>
         </div>

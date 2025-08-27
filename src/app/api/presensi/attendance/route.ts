@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
-import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB,formatDateWIB, formatDateTimeWIB } from '@/lib/timezone'
+import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB } from '@/lib/timezone'
 import { console } from 'node:inspector'
 // import { console } from 'inspector'
 
