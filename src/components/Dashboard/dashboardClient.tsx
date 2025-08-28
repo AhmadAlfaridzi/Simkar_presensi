@@ -59,8 +59,9 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(initialAttendance)
   const [allEmployees, setAllEmployees] = useState(initialEmployees)
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const isMobile = useMobile()
+  
 
   const [monthlyStats, setMonthlyStats] = useState<
       { name: string; hadir: number; terlambat: number; tidakHadir: number }[]
@@ -109,7 +110,6 @@ const attendanceDataM = (() => {
       tidakHadir
     })
   }
-
   return data
 })()
 
@@ -125,8 +125,8 @@ const attendanceDataM = (() => {
   }, [setMetadata])
 
   useEffect(() => {
-    async function fetchLatestData() {
-      setLoading(true)
+    async function fetchLatestData(isInitial = false) {
+      if (isInitial) setLoading(true) 
       try {
         const today = new Date().toISOString().split('T')[0]
         const [attendanceRes, employeesRes] = await Promise.all([
@@ -138,17 +138,21 @@ const attendanceDataM = (() => {
         const attendanceData = await attendanceRes.json() as AttendanceRecord[]
         const employeesData = await employeesRes.json()
 
-        setAttendanceRecords(attendanceData)
-        setAllEmployees(employeesData)
+        setAttendanceRecords(prev =>
+          JSON.stringify(prev) !== JSON.stringify(attendanceData) ? attendanceData : prev
+        )
+        setAllEmployees(prev =>
+          JSON.stringify(prev) !== JSON.stringify(employeesData) ? employeesData : prev
+        )
       } catch (error) {
         console.error('Failed to fetch data', error)
       } finally {
-        setLoading(false)
+        if (isInitial) setLoading(false) 
       }
     }
 
-    fetchLatestData() 
-    const interval = setInterval(fetchLatestData, 30000) 
+    fetchLatestData(true) 
+    const interval = setInterval(() => fetchLatestData(false), 30000) 
     return () => clearInterval(interval)
   }, [])
 
