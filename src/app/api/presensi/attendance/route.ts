@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 import {prisma} from '@/lib/prisma'
 import { AttendanceStatus } from '@prisma/client'
 import { nowWIB, startOfDayWIB, endOfDayWIB, isWeekendWIB } from '@/lib/timezone'
-import { console } from 'node:inspector'
-// import { console } from 'inspector'
+
 
 function getAttendanceStatusByNow(
   now: Date,
@@ -23,7 +22,6 @@ function getAttendanceStatusByNow(
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-      console.log('📩 Data diterima di API /attendance:', data)
     const {
       userId,
       clockIn,

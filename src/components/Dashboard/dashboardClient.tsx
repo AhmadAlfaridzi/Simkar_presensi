@@ -67,7 +67,7 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
       { name: string; hadir: number; terlambat: number; tidakHadir: number }[]
     >([])
 
-    useEffect(() => {
+   useEffect(() => {
       async function fetchStats() {
         try {
           const res = await fetch('/api/attendance/stats', { cache: 'no-store' })
@@ -80,38 +80,57 @@ export default function DashboardClient({ initialAttendance, initialEmployees }:
       }
 
       fetchStats()
-    }, [])
-  
- 
-const attendanceDataM = (() => {
-  const now = new Date()
-  const month = now.getMonth() + 1
-  const year = now.getFullYear()
-  const daysInMonth = new Date(year, month, 0).getDate()
+  }, [])
 
-  const data = []
+  // Ambil seluruh data bulan ini di mobile supaya grafik lengkap
+  useEffect(() => {
+    async function fetchMonthData() {
+      if (!isMobile) return
+      try {
+        const now = new Date()
+        const monthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
+        const res = await fetch(`/api/attendance?month=${monthStr}`, { cache: 'no-store' })
+        if (!res.ok) throw new Error('Failed to fetch month attendance')
+        const data = await res.json()
+        setAttendanceRecords(data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    fetchMonthData()
+  }, [isMobile])
 
-    // filter pakai WIB
-    const dayRecords = attendanceRecords.filter(r =>
-      formatDateWIB(new Date(r.date), 'yyyy-MM-dd') === dateStr
-    )
+  // Data untuk grafik harian bulan ini
+  const attendanceDataM = (() => {
+    const now = new Date()
+    const month = now.getMonth() + 1
+    const year = now.getFullYear()
+    const daysInMonth = new Date(year, month, 0).getDate()
 
-    const hadir = dayRecords.filter(r => r.status === 'TEPAT_WAKTU' || r.status === 'TERLAMBAT').length
-    const terlambat = dayRecords.filter(r => r.status === 'TERLAMBAT').length
-    const tidakHadir = dayRecords.filter(r => r.status === 'TIDAK_HADIR').length
+    const data = []
 
-    data.push({
-      name: `${day} ${formatDateWIB(new Date(`${year}-${month}-${day}`), 'MMM')}`,
-      hadir,
-      terlambat,
-      tidakHadir
-    })
-  }
-  return data
-})()
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+
+      // filter pakai WIB
+      const dayRecords = attendanceRecords.filter(r =>
+        formatDateWIB(new Date(r.date), 'yyyy-MM-dd') === dateStr
+      )
+
+      const hadir = dayRecords.filter(r => r.status === 'TEPAT_WAKTU' || r.status === 'TERLAMBAT').length
+      const terlambat = dayRecords.filter(r => r.status === 'TERLAMBAT').length
+      const tidakHadir = dayRecords.filter(r => r.status === 'TIDAK_HADIR').length
+
+      data.push({
+        name: `${day} ${formatDateWIB(new Date(`${year}-${month}-${day}`), 'MMM')}`,
+        hadir,
+        terlambat,
+        tidakHadir
+      })
+    }
+    return data
+  })()
 
 
   useEffect(() => {
